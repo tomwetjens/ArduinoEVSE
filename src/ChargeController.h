@@ -1,3 +1,6 @@
+#ifndef CHARGECONTROLLER_H_  _
+#define CHARGECONTROLLER_H_  _
+
 enum State
 {
     Ready,
@@ -43,3 +46,5 @@ public:
     void onVehicleStateChange(EventHandler handler);
     void onStateChange(EventHandler handler);
 };
+
+#endif // CHARGECONTROLLER_H_

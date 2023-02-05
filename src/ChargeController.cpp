@@ -2,9 +2,10 @@
 
 #include "ChargeController.h"
 
-#define PILOT_PWM digitalPinToPort(10)
-#define PILOT_IN PIN_A0
-#define AC_RELAY 8
+#define PIN_PILOT_PWM digitalPinToPort(10)
+#define PIN_PILOT_IN PIN_A0
+#define PIN_AC_RELAY 8
+#define PIN_CT_IN PIN_A1
 
 #define EV_STATE_DEBOUNCE_MILLIS 500
 
@@ -34,7 +35,7 @@ String getVehicleStateText(VehicleState vehicleState)
 
 VehicleState readVehicleState()
 {
-    float pinVoltage = (analogRead(PILOT_IN) / 1023.0) * 5;
+    float pinVoltage = (analogRead(PIN_PILOT_IN) / 1023.0) * 5;
     float pilotVoltage = (pinVoltage / 5) * 12;
 
     if (pilotVoltage >= 11)
@@ -91,12 +92,12 @@ void ChargeController::updateVehicleState()
 
 void ChargeController::closeRelay()
 {
-    digitalWrite(AC_RELAY, HIGH);
+    digitalWrite(PIN_AC_RELAY, HIGH);
 }
 
 void ChargeController::openRelay()
 {
-    digitalWrite(AC_RELAY, LOW);
+    digitalWrite(PIN_AC_RELAY, LOW);
 }
 
 void pilotStandby()
@@ -111,11 +112,11 @@ void pilotCurrentLimit(int amps)
 
 void ChargeController::setup()
 {
-    pinMode(AC_RELAY, OUTPUT);
+    pinMode(PIN_AC_RELAY, OUTPUT);
     openRelay();
 
     pilotStandby();
-    pinMode(PILOT_IN, INPUT);
+    pinMode(PIN_PILOT_IN, INPUT);
 
     this->maxCurrent = 16;
     this->desiredCurrent = 16;
@@ -138,16 +139,25 @@ void ChargeController::update()
 
 void ChargeController::startCharging()
 {
-    if (this->state != Charging && this->vehicleState == EV_Ready)
+    if (this->state == Charging)
     {
-        Serial.println("Start charging");
-
-        pilotCurrentLimit(desiredCurrent);
-        this->closeRelay();
-
-        this->state = Charging;
-        this->stateChange();
+        Serial.println("Already charging");
+        return;
     }
+
+    if (this->vehicleState != EV_Ready)
+    {
+        Serial.println("Vehicle not ready");
+        return;
+    }
+
+    Serial.println("Start charging");
+
+    pilotCurrentLimit(desiredCurrent);
+    this->closeRelay();
+
+    this->state = Charging;
+    this->stateChange();
 }
 
 void ChargeController::stopCharging()
@@ -155,13 +165,16 @@ void ChargeController::stopCharging()
     this->openRelay();
     pilotStandby();
 
-    if (this->state == Charging)
+    if (this->state != Charging)
     {
-        Serial.println("Stop charging");
-
-        this->state = Ready;
-        this->stateChange();
+        Serial.println("Not charging");
+        return;
     }
+
+    Serial.println("Stop charging");
+
+    this->state = Ready;
+    this->stateChange();
 }
 
 State ChargeController::getState()
@@ -181,7 +194,7 @@ int ChargeController::getDesiredCurrent()
 
 float ChargeController::getActualCurrent()
 {
-    return ((analogRead(AC_CT) - 511.0) / 512.0) * 32; // TODO This is just imaginary
+    return ((analogRead(PIN_CT_IN) - 511.0) / 512.0) * 32; // TODO This is just imaginary
 }
 
 void ChargeController::onVehicleStateChange(EventHandler handler)

@@ -4,6 +4,7 @@
 #include "ChargeController.h"
 #include "NetworkManager.h"
 #include "WebServer.h"
+#include "MqttController.h"
 
 #define LED_GREEN 13
 #define LED_RED 5
@@ -12,17 +13,13 @@ Display display;
 ChargeController chargeController;
 NetworkManager networkManager;
 WebServer webServer;
+MqttController mqttController(chargeController);
 
 unsigned long chargingStartMillis;
 
-void startChargingAutomatically()
+void vehicleStateChanged()
 {
-  if (chargeController.getVehicleState() == EV_Ready)
-  {
-    delay(1000);
-    chargeController.startCharging();
-    chargingStartMillis = millis();
-  }
+  mqttController.sendUpdate();
 }
 
 void updateLED(byte red, byte green, byte blue)
@@ -32,7 +29,7 @@ void updateLED(byte red, byte green, byte blue)
   // Blue is soldered to charger relay
 }
 
-void updateStatus()
+void stateChanged()
 {
   State state = chargeController.getState();
 
@@ -45,6 +42,7 @@ void updateStatus()
   case Charging:
     updateLED(0, 0, 1);
     display.showStatus("Charging");
+    chargingStartMillis = millis();
     break;
   case Error:
     updateLED(1, 0, 0);
@@ -55,7 +53,7 @@ void updateStatus()
 
 void startNetworkServices()
 {
-  webServer.start();
+  // webServer.start();
 }
 
 void setup()
@@ -66,13 +64,14 @@ void setup()
   display.setup();
   chargeController.setup();
   networkManager.setup();
+  mqttController.setup();
 
-  chargeController.onStateChange(updateStatus);
-  chargeController.onVehicleStateChange(startChargingAutomatically);
+  chargeController.onStateChange(stateChanged);
+  chargeController.onVehicleStateChange(vehicleStateChanged);
 
   networkManager.onConnected(startNetworkServices);
 
-  updateStatus();
+  stateChanged();
 }
 
 void loop()
@@ -88,5 +87,7 @@ void loop()
 
   networkManager.loop();
 
-  webServer.loop();
+  mqttController.loop();
+
+  // webServer.loop();
 }

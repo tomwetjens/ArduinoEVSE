@@ -166,8 +166,9 @@ void MqttController::sendUpdate()
             (int)actualCurrent,
             actualCurrentDecimals);
 
-    Serial.print("Sending message to topic: ");
-    Serial.println(outTopic);
+    Serial.print("Sending message to ");
+    Serial.print(outTopic);
+    Serial.print(": ");
     Serial.println(msg);
 
     mqttClient.beginMessage(outTopic);

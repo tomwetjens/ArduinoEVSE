@@ -107,10 +107,15 @@ void NetworkManager::update()
                 {
                     this->disconnected();
                 }
-
-                connect();
                 break;
             }
+        }
+
+        switch (status)
+        {
+        case WL_DISCONNECTED:
+            connect();
+            break;
         }
     }
 }

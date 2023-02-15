@@ -13,8 +13,8 @@ void Display::setup()
 {
     lcd.init();
     lcd.backlight();
+    lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("ArduinoEVSE");
 }
 
 void Display::update()
@@ -24,6 +24,11 @@ void Display::update()
 
     if (state != lastUpdateState || now - lastUpdateMillis >= 1000)
     {
+        if (state != lastUpdateState)
+        {
+            lcd.clear();
+        }
+
         switch (state)
         {
         case Ready:
@@ -48,7 +53,6 @@ void Display::update()
 
 void Display::printStatus(String status)
 {
-    lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print(status);
 }

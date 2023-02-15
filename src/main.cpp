@@ -3,19 +3,15 @@
 #include "Display.h"
 #include "ChargeController.h"
 #include "NetworkManager.h"
-#include "WebServer.h"
 #include "MqttController.h"
 
 #define LED_GREEN 13
 #define LED_RED 5
 
-Display display;
 ChargeController chargeController;
+Display display(chargeController);
 NetworkManager networkManager;
-WebServer webServer;
 MqttController mqttController(chargeController);
-
-unsigned long chargingStartMillis;
 
 void vehicleStateChanged()
 {
@@ -37,23 +33,14 @@ void stateChanged()
   {
   case Ready:
     updateLED(0, 1, 0);
-    display.showStatus("Ready");
     break;
   case Charging:
     updateLED(0, 0, 1);
-    display.showStatus("Charging");
-    chargingStartMillis = millis();
     break;
   case Error:
     updateLED(1, 0, 0);
-    display.showStatus("Error");
     break;
   }
-}
-
-void startNetworkServices()
-{
-  // webServer.start();
 }
 
 void setup()
@@ -69,25 +56,16 @@ void setup()
   chargeController.onStateChange(stateChanged);
   chargeController.onVehicleStateChange(vehicleStateChanged);
 
-  networkManager.onConnected(startNetworkServices);
-
   stateChanged();
 }
 
 void loop()
 {
   chargeController.update();
+  
+  display.update();
 
-  if (chargeController.getState() == Charging)
-  {
-    display.showElapsedTime(millis() - chargingStartMillis);
-    display.showDesiredCurrent(chargeController.getDesiredCurrent());
-    display.showActualCurrent(chargeController.getActualCurrent());
-  }
-
-  networkManager.loop();
+  networkManager.update();
 
   mqttController.loop();
-
-  // webServer.loop();
 }

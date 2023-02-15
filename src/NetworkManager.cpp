@@ -70,7 +70,7 @@ String getStatusText(int status)
     }
 }
 
-void NetworkManager::loop()
+void NetworkManager::update()
 {
     if (millis() - lastCheckMillis >= 2000)
     {

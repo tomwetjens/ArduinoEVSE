@@ -45,6 +45,8 @@ void MqttController::connect()
     Serial.println("Subscribing to topic: ");
     Serial.println(inTopic);
     mqttClient.subscribe(inTopic);
+
+    this->sendUpdate(); 
 }
 
 void MqttController::reconnectAutomatically()

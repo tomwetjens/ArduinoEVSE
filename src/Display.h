@@ -1,9 +1,23 @@
+#ifndef DISPLAY_H_ _
+#define DISPLAY_H_ _
+
+#include "ChargeController.h"
+
 class Display
 {
+private:
+    ChargeController* chargeController;
+    State lastUpdateState;
+    unsigned long lastUpdateMillis;
+    void printStatus(String status);
+    void printActualCurrent(float amps);
+    void printDesiredCurrent(int amps);
+    void printElapsedTime();
+
 public:
+    Display(ChargeController &chargeController);
     void setup();
-    void showStatus(String status);
-    void showActualCurrent(float amps);
-    void showDesiredCurrent(int amps);
-    void showElapsedTime(unsigned long millis);
+    void update();
 };
+
+#endif

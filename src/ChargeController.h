@@ -21,7 +21,7 @@ private:
     float pilotVoltage;
     VehicleState vehicleState;
     int maxCurrent;
-    int desiredCurrent;
+    float currentLimit;
     unsigned long startMillis;
     EventHandler vehicleStateChange;
     EventHandler stateChange;
@@ -37,7 +37,8 @@ public:
     State getState();
     VehicleState getVehicleState();
     unsigned long getElapsedTime();
-    int getDesiredCurrent();
+    float getCurrentLimit();
+    void setCurrentLimit(float amps);
     float getActualCurrent();
     void onVehicleStateChange(EventHandler handler);
     void onStateChange(EventHandler handler);

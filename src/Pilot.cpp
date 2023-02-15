@@ -14,6 +14,7 @@
 #define MIN_CURRENT 6
 #define MAX_CURRENT 80
 
+#define USING_TIMERB true
 megaAVR_PWM *PWM_Instance = new megaAVR_PWM(PIN_PILOT_PWM, PILOT_FREQUENCY, 0);
 
 int analogReadMax(pin_size_t pinNumber, int count)
@@ -31,7 +32,7 @@ void Pilot::standby()
     digitalWrite(PIN_PILOT_PWM, HIGH); // +12V constant
 }
 
-void Pilot::currentLimit(int amps)
+void Pilot::currentLimit(float amps)
 {
     if (amps < MIN_CURRENT)
         amps = MIN_CURRENT;

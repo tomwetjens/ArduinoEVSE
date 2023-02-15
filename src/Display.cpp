@@ -32,13 +32,14 @@ void Display::update()
         case Charging:
             this->printStatus("Charging");
             this->printElapsedTime();
-            this->printDesiredCurrent(this->chargeController->getDesiredCurrent());
-            this->printActualCurrent(this->chargeController->getActualCurrent());
             break;
         case Error:
             this->printStatus("Error");
             break;
         }
+
+        this->printCurrentLimit(this->chargeController->getCurrentLimit());
+        this->printActualCurrent(this->chargeController->getActualCurrent());
 
         lastUpdateState = state;
         lastUpdateMillis = now;
@@ -52,12 +53,15 @@ void Display::printStatus(String status)
     lcd.print(status);
 }
 
-void Display::printDesiredCurrent(int amps)
+void Display::printCurrentLimit(float amps)
 {
-    char buffer[4];
-    sprintf(buffer, "%2d A", amps);
+    float frac = amps - (int)amps;
+    int decimals = frac * 10;
 
-    lcd.setCursor(12, 0);
+    char buffer[6];
+    sprintf(buffer, "%2d.%01d A", (int)amps, decimals);
+
+    lcd.setCursor(10, 0);
     lcd.print(buffer);
 }
 

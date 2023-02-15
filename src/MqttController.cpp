@@ -12,7 +12,7 @@ const int port = 1883;
 const char inTopic[] = "ArduinoEVSE/in";
 const char outTopic[] = "ArduinoEVSE/out";
 const unsigned long reconnectInterval = 5000;
-const unsigned long updateInterval = 30000;
+const unsigned long updateInterval = 5000;
 
 WiFiClient wifiClient;
 
@@ -40,13 +40,12 @@ void MqttController::connect()
     }
 
     Serial.println("Connected to the MQTT broker");
-    Serial.println();
 
-    Serial.println("Subscribing to topic: ");
+    Serial.print("Subscribing to topic: ");
     Serial.println(inTopic);
     mqttClient.subscribe(inTopic);
 
-    this->sendUpdate(); 
+    this->sendUpdate();
 }
 
 void MqttController::reconnectAutomatically()
@@ -88,14 +87,24 @@ void MqttController::processMessage(char *msg)
     switch (cmd)
     {
     case StartChargingSession:
-        Serial.println("Start Charging Session command received");
+        Serial.println("StartChargingSession command received");
         this->chargeController->startCharging();
         this->sendUpdate();
         break;
 
     case StopChargingSession:
-        Serial.println("Stop Charging Session command received");
+        Serial.println("StopChargingSession command received");
         this->chargeController->stopCharging();
+        this->sendUpdate();
+        break;
+
+    case SetCurrentLimit:
+        Serial.println("SetCurrentLimit command received");
+
+        token = strtok(NULL, ",");
+        float amps = atof(token);
+
+        this->chargeController->setCurrentLimit(amps);
         this->sendUpdate();
         break;
 
@@ -140,17 +149,20 @@ void MqttController::sendUpdate()
         return;
     }
 
-    int desiredCurrent = this->chargeController->getDesiredCurrent();
+    float currentLimit = this->chargeController->getCurrentLimit();
+    float currentLimitFraction = currentLimit - (int)currentLimit;
+    int currentLimitDecimals = currentLimitFraction * 10;
 
     float actualCurrent = this->chargeController->getActualCurrent();
     float actualCurrentFraction = actualCurrent - (int)actualCurrent;
     int actualCurrentDecimals = actualCurrentFraction * 10;
 
     char msg[100];
-    sprintf(msg, "%d,%d,%d,%d.%01d",
+    sprintf(msg, "%d,%d,%d.%01d,%d.%01d",
             this->chargeController->getState(),
             this->chargeController->getVehicleState(),
-            desiredCurrent,
+            (int)currentLimit,
+            currentLimitDecimals,
             (int)actualCurrent,
             actualCurrentDecimals);
 

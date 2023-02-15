@@ -4,13 +4,10 @@
 
 #define PIN_AC_RELAY 8
 
-#define PIN_CT_IN PIN_A0
-
-#define USING_TIMERB true
-
 #define EV_STATE_DEBOUNCE_MILLIS 500
 
 Pilot pilot;
+
 unsigned long lastReadVehicleStateMillis = 0;
 VehicleState lastReadVehicleState = EV_NotConnected;
 
@@ -79,7 +76,7 @@ void ChargeController::setup()
     pilot.standby();
 
     this->maxCurrent = 16;
-    this->desiredCurrent = 16;
+    this->currentLimit = this->maxCurrent;
     this->vehicleState = EV_NotConnected;
     this->state = Ready;
 }
@@ -113,14 +110,17 @@ void ChargeController::startCharging()
 
     Serial.println("Start charging");
 
-    pilot.currentLimit(desiredCurrent);
+    pilot.currentLimit(this->currentLimit);
     this->closeRelay();
 
     this->state = Charging;
 
     this->startMillis = millis();
 
-    this->stateChange();
+    if (this->stateChange)
+    {
+        this->stateChange();
+    }
 }
 
 void ChargeController::stopCharging()
@@ -137,7 +137,11 @@ void ChargeController::stopCharging()
     Serial.println("Stop charging");
 
     this->state = Ready;
-    this->stateChange();
+
+    if (this->stateChange)
+    {
+        this->stateChange();
+    }
 }
 
 State ChargeController::getState()
@@ -155,9 +159,23 @@ unsigned long ChargeController::getElapsedTime()
     return millis() - this->startMillis;
 }
 
-int ChargeController::getDesiredCurrent()
+float ChargeController::getCurrentLimit()
 {
-    return this->desiredCurrent;
+    return this->currentLimit;
+}
+
+void ChargeController::setCurrentLimit(float amps)
+{
+    this->currentLimit = amps;
+
+    Serial.print("Setting current limit to ");
+    Serial.print(amps);
+    Serial.println(" A");
+
+    if (this->state == Charging)
+    {
+        pilot.currentLimit(currentLimit);
+    }
 }
 
 float ChargeController::getActualCurrent()

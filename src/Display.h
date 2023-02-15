@@ -11,7 +11,7 @@ private:
     unsigned long lastUpdateMillis;
     void printStatus(String status);
     void printActualCurrent(float amps);
-    void printDesiredCurrent(int amps);
+    void printCurrentLimit(float amps);
     void printElapsedTime();
 
 public:

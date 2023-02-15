@@ -17,7 +17,7 @@ class Pilot {
     public:
       VehicleState read();
       void standby();
-      void currentLimit(int amps);
+      void currentLimit(float amps);
 };
 
 #endif // PILOT_H_

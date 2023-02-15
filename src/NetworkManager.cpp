@@ -94,12 +94,19 @@ void NetworkManager::update()
                 Serial.print("Signal strength: ");
                 Serial.print(WiFi.RSSI());
                 Serial.println("dBm");
-                this->connected();
+
+                if (this->connected)
+                {
+                    this->connected();
+                }
                 break;
 
             case WL_CONNECTION_LOST:
             case WL_DISCONNECTED:
-                this->disconnected();
+                if (this->disconnected)
+                {
+                    this->disconnected();
+                }
 
                 connect();
                 break;

@@ -9,7 +9,8 @@
 enum Command
 {
     StopChargingSession = 0,
-    StartChargingSession = 1
+    StartChargingSession = 1,
+    SetCurrentLimit = 2,
 };
 
 class MqttController

@@ -1,7 +1,8 @@
 # ArduinoEVSE
 
 Tested with Arduino Uno WiFi Rev2.
-Inspired by https://github.com/OpenEVSE and https://www.instructables.com/Arduino-EV-J1772-Charging-Station/
+Inspired by https://github.com/OpenEVSE and https://www.instructables.com/Arduino-EV-J1772-Charging-Station/.
+
 
 ## Build
 

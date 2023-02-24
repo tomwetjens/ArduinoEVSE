@@ -16,9 +16,7 @@ class ChargeController
 {
 private:
     State state;
-    int pilotPinRead;
-    float pilotPinVoltage;
-    float pilotVoltage;
+    Pilot pilot;
     VehicleState vehicleState;
     int maxCurrent;
     float currentLimit;
@@ -40,6 +38,7 @@ public:
     float getCurrentLimit();
     void setCurrentLimit(float amps);
     float getActualCurrent();
+    Pilot* getPilot();
     void onVehicleStateChange(EventHandler handler);
     void onStateChange(EventHandler handler);
 };

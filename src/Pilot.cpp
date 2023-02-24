@@ -29,7 +29,7 @@ int analogReadMax(pin_size_t pinNumber, int count)
 
 void Pilot::standby()
 {
-    digitalWrite(PIN_PILOT_PWM, HIGH); // +12V constant
+    digitalWrite(PIN_PILOT_PWM, HIGH);
 }
 
 void Pilot::currentLimit(float amps)
@@ -54,16 +54,29 @@ void Pilot::currentLimit(float amps)
     PWM_Instance->setPWM(PIN_PILOT_PWM, PILOT_FREQUENCY, dutyCycle);
 }
 
-float Pilot::readVoltage()
+float Pilot::getLastPilotVoltage()
+{
+    return this->lastPilotVoltage;
+}
+
+float Pilot::getLastPinVoltage()
+{
+    return this->lastPinVoltage;
+}
+
+float Pilot::readPin()
 {
     int pinValue = analogReadMax(PIN_PILOT_IN, 10);                                                                  // 0-1023
     float pinVoltage = (pinValue / 1023.0) * 5.0;                                                                    // 0-5
-    return ((pinVoltage - PIN_PILOT_IN_MIN_VOLTAGE) / (PIN_PILOT_IN_MAX_VOLTAGE - PIN_PILOT_IN_MIN_VOLTAGE)) * 12.0; // 0-12
+    float pilotVoltage = ((pinVoltage - PIN_PILOT_IN_MIN_VOLTAGE) / (PIN_PILOT_IN_MAX_VOLTAGE - PIN_PILOT_IN_MIN_VOLTAGE)) * 12.0; // 0-12
+    this->lastPinVoltage = pinVoltage;
+    this->lastPilotVoltage = pilotVoltage;
+    return pilotVoltage;
 }
 
 VehicleState Pilot::read()
 {
-    float voltage = this->readVoltage();
+    float voltage = this->readPin();
 
     if (voltage >= 11) // 12V +/-1V
     {

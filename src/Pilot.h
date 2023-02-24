@@ -13,11 +13,15 @@ enum VehicleState
 
 class Pilot {
     private:
-      float readVoltage();
+      float lastPilotVoltage;
+      float lastPinVoltage;
+      float readPin();
     public:
       VehicleState read();
       void standby();
       void currentLimit(float amps);
+      float getLastPilotVoltage();
+      float getLastPinVoltage();
 };
 
 #endif // PILOT_H_

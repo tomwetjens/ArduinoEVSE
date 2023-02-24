@@ -6,8 +6,6 @@
 
 #define EV_STATE_DEBOUNCE_MILLIS 500
 
-Pilot pilot;
-
 unsigned long lastReadVehicleStateMillis = 0;
 VehicleState lastReadVehicleState = EV_NotConnected;
 
@@ -73,7 +71,8 @@ void ChargeController::setup()
     pinMode(PIN_AC_RELAY, OUTPUT);
     openRelay();
 
-    pilot.standby();
+    this->pilot = Pilot();
+    this->pilot.standby();
 
     this->maxCurrent = 16;
     this->currentLimit = this->maxCurrent;
@@ -181,6 +180,11 @@ void ChargeController::setCurrentLimit(float amps)
 float ChargeController::getActualCurrent()
 {
     return 0; // TODO
+}
+
+Pilot* ChargeController::getPilot()
+{
+    return &this->pilot;
 }
 
 void ChargeController::onVehicleStateChange(EventHandler handler)

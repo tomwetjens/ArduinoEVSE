@@ -153,18 +153,19 @@ void MqttController::sendUpdate()
     float currentLimitFraction = currentLimit - (int)currentLimit;
     int currentLimitDecimals = currentLimitFraction * 10;
 
-    float actualCurrent = this->chargeController->getActualCurrent();
-    float actualCurrentFraction = actualCurrent - (int)actualCurrent;
-    int actualCurrentDecimals = actualCurrentFraction * 10;
+    Pilot* pilot = this->chargeController->getPilot();
+    float pilotVoltage = pilot->getLastPilotVoltage();
+    float pilotVoltageFraction = pilotVoltage - (int)pilotVoltage;
+    int pilotVoltageDecimals = pilotVoltageFraction * 10;
 
     char msg[100];
-    sprintf(msg, "%d,%d,%d.%01d,%d.%01d",
+    sprintf(msg, "%d,%d,%d.%01d,%d.%02d",
             this->chargeController->getState(),
             this->chargeController->getVehicleState(),
             (int)currentLimit,
             currentLimitDecimals,
-            (int)actualCurrent,
-            actualCurrentDecimals);
+            (int)pilotVoltage,
+            pilotVoltageDecimals);
 
     Serial.print("Sending message to ");
     Serial.print(outTopic);

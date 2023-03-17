@@ -84,7 +84,7 @@ void ChargeController::update()
 {
     this->updateVehicleState();
 
-    if (this->vehicleState != EV_Ready)
+    if (this->vehicleState != EV_Connected && this->vehicleState != EV_Ready)
     {
         if (this->state == Charging)
         {
@@ -101,9 +101,9 @@ void ChargeController::startCharging()
         return;
     }
 
-    if (this->vehicleState != EV_Ready)
+    if (this->vehicleState != EV_Connected && this->vehicleState != EV_Ready)
     {
-        Serial.println("Vehicle not ready");
+        Serial.println("Vehicle not connected");
         return;
     }
 

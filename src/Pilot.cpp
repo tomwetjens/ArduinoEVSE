@@ -8,7 +8,7 @@
 #define PIN_PILOT_PWM 10
 
 #define PIN_PILOT_IN_MIN_VOLTAGE 2.55 // @ 0V pilot, measured
-#define PIN_PILOT_IN_MAX_VOLTAGE 4.33 // @ 12V pilot, measured
+#define PIN_PILOT_IN_MAX_VOLTAGE 4.47 // @ 12V pilot, measured
 #define PIN_PILOT_IN PIN_A1
 
 #define MIN_CURRENT 6
@@ -66,7 +66,7 @@ float Pilot::getLastPinVoltage()
 
 float Pilot::readPin()
 {
-    int pinValue = analogReadMax(PIN_PILOT_IN, 10);                                                                  // 0-1023
+    int pinValue = analogReadMax(PIN_PILOT_IN, 10);
     float pinVoltage = (pinValue / 1023.0) * 5.0;                                                                    // 0-5
     float pilotVoltage = ((pinVoltage - PIN_PILOT_IN_MIN_VOLTAGE) / (PIN_PILOT_IN_MAX_VOLTAGE - PIN_PILOT_IN_MIN_VOLTAGE)) * 12.0; // 0-12
     this->lastPinVoltage = pinVoltage;

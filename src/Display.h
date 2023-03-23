@@ -2,11 +2,15 @@
 #define DISPLAY_H_ _
 
 #include "ChargeController.h"
+#include "NetworkManager.h"
+#include "MqttController.h"
 
 class Display
 {
 private:
-    ChargeController* chargeController;
+    ChargeController *chargeController;
+    NetworkManager *networkManager;
+    MqttController *mqttController;
     State lastUpdateState;
     unsigned long lastUpdateMillis;
     void printStatus(String status);
@@ -15,7 +19,9 @@ private:
     void printElapsedTime();
 
 public:
-    Display(ChargeController &chargeController);
+    Display(ChargeController &chargeController,
+            NetworkManager &networkManager,
+            MqttController &mqttController);
     void setup();
     void update();
 };

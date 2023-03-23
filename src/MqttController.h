@@ -28,6 +28,7 @@ public:
     void setup();
     void loop();
     void sendUpdate();
+    bool isConnected();
 };
 
 #endif

@@ -12,6 +12,7 @@ private:
 public:
     void setup();
     void update();
+    bool isConnected();
     void onConnected(EventHandler handler);
     void onDisconnected(EventHandler handler);
 };

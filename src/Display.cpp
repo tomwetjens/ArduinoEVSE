@@ -4,9 +4,13 @@
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-Display::Display(ChargeController &chargeController)
+Display::Display(ChargeController &chargeController,
+                 NetworkManager &networkManager,
+                 MqttController &mqttController)
 {
     this->chargeController = &chargeController;
+    this->networkManager = &networkManager;
+    this->mqttController = &mqttController;
 }
 
 void Display::setup()
@@ -24,27 +28,34 @@ void Display::update()
 
     if (state != lastUpdateState || now - lastUpdateMillis >= 1000)
     {
-        if (state != lastUpdateState)
-        {
-            lcd.clear();
-        }
+        lcd.clear();
 
-        switch (state)
+        if (!this->networkManager->isConnected())
         {
-        case Ready:
-            this->printStatus("Ready");
-            break;
-        case Charging:
-            this->printStatus("Charging");
-            this->printElapsedTime();
-            break;
-        case Error:
-            this->printStatus("Error");
-            break;
+            this->printStatus("No network!");
+        }
+        else if (!this->mqttController->isConnected())
+        {
+            this->printStatus("No MQTT!");
+        }
+        else
+        {
+            switch (state)
+            {
+            case Ready:
+                this->printStatus("Ready");
+                break;
+            case Charging:
+                this->printStatus("Charging");
+                this->printElapsedTime();
+                break;
+            case Error:
+                this->printStatus("Error");
+                break;
+            }
         }
 
         this->printCurrentLimit(this->chargeController->getCurrentLimit());
-        this->printActualCurrent(this->chargeController->getActualCurrent());
 
         lastUpdateState = state;
         lastUpdateMillis = now;
@@ -66,18 +77,6 @@ void Display::printCurrentLimit(float amps)
     sprintf(buffer, "%2d.%01d A", (int)amps, decimals);
 
     lcd.setCursor(10, 0);
-    lcd.print(buffer);
-}
-
-void Display::printActualCurrent(float amps)
-{
-    float frac = amps - (int)amps;
-    int decimals = frac * 10;
-
-    char buffer[6];
-    sprintf(buffer, "%2d.%01d A", (int)amps, decimals);
-
-    lcd.setCursor(10, 1);
     lcd.print(buffer);
 }
 

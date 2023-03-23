@@ -120,6 +120,11 @@ void NetworkManager::update()
     }
 }
 
+bool NetworkManager::isConnected()
+{
+    return WiFi.status() == WL_CONNECTED;
+}
+
 void NetworkManager::onConnected(EventHandler handler)
 {
     this->connected = handler;

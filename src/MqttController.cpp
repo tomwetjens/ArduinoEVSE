@@ -178,3 +178,8 @@ void MqttController::sendUpdate()
 
     lastUpdateSentMillis = millis();
 }
+
+bool MqttController::isConnected()
+{
+    return mqttClient.connected();
+}

@@ -37,7 +37,6 @@ public:
     unsigned long getElapsedTime();
     float getCurrentLimit();
     void setCurrentLimit(float amps);
-    float getActualCurrent();
     Pilot* getPilot();
     void onVehicleStateChange(EventHandler handler);
     void onStateChange(EventHandler handler);

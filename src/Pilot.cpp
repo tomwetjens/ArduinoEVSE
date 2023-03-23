@@ -29,6 +29,7 @@ int analogReadMax(pin_size_t pinNumber, int count)
 
 void Pilot::standby()
 {
+    Serial.println("Setting pilot standby");
     digitalWrite(PIN_PILOT_PWM, HIGH);
 }
 
@@ -51,6 +52,8 @@ void Pilot::currentLimit(float amps)
         dutyCycle = (amps / 2.5) + 64;
     }
 
+    Serial.print("Setting pilot duty cycle: ");
+    Serial.println(dutyCycle);
     PWM_Instance->setPWM(PIN_PILOT_PWM, PILOT_FREQUENCY, dutyCycle);
 }
 

@@ -186,11 +186,6 @@ void ChargeController::setCurrentLimit(float amps)
     }
 }
 
-float ChargeController::getActualCurrent()
-{
-    return 0; // TODO
-}
-
 Pilot* ChargeController::getPilot()
 {
     return &this->pilot;

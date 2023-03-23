@@ -9,38 +9,48 @@
 #define LED_RED 5
 
 ChargeController chargeController;
-Display display(chargeController);
 NetworkManager networkManager;
 MqttController mqttController(chargeController);
+Display display(chargeController, networkManager, mqttController);
 
 void vehicleStateChanged()
 {
   mqttController.sendUpdate();
 }
 
-void updateLED(byte red, byte green, byte blue)
-{
-  digitalWrite(LED_RED, red);
-  digitalWrite(LED_GREEN, green);
-  // Blue is soldered to charger relay
-}
-
-void stateChanged()
+void updateLED()
 {
   State state = chargeController.getState();
 
   switch (state)
   {
   case Ready:
-    updateLED(0, 1, 0);
+    if (mqttController.isConnected() && networkManager.isConnected())
+    {
+      digitalWrite(LED_RED, LOW);
+      digitalWrite(LED_GREEN, HIGH);
+    }
+    else
+    {
+      digitalWrite(LED_RED, HIGH);
+      digitalWrite(LED_GREEN, LOW);
+    }
     break;
   case Charging:
-    updateLED(0, 0, 1);
+    digitalWrite(LED_RED, LOW);
+    digitalWrite(LED_GREEN, LOW);
+    // Blue is soldered to charger relay
     break;
   case Error:
-    updateLED(1, 0, 0);
+    digitalWrite(LED_RED, HIGH);
+    digitalWrite(LED_GREEN, LOW);
     break;
   }
+}
+
+void stateChanged()
+{
+  updateLED();
 }
 
 void setup()
@@ -56,16 +66,25 @@ void setup()
   chargeController.onStateChange(stateChanged);
   chargeController.onVehicleStateChange(vehicleStateChanged);
 
-  stateChanged();
+  updateLED();
 }
 
 void loop()
 {
   chargeController.update();
-  
   display.update();
-
   networkManager.update();
-
   mqttController.loop();
+
+  if (!mqttController.isConnected())
+  {
+    // For safety reasons, we have to fall back to a safe charging current
+    if (chargeController.getState() == Charging && chargeController.getCurrentLimit() > 6)
+    {
+      Serial.println("MQTT disconnected. Falling back to safe charging current");
+      chargeController.setCurrentLimit(6);
+    }
+  }
+
+  updateLED();
 }

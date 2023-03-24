@@ -13,6 +13,8 @@ void connect()
     Serial.print("Connecting to WiFi network: ");
     Serial.println(WIFI_SSID);
 
+    WiFi.disconnect();
+
     // Attempt to connect to Wifi network:
     lastStatus = WiFi.begin(WIFI_SSID, WIFI_WPA_PASS);
     lastCheckMillis = millis();
@@ -113,7 +115,9 @@ void NetworkManager::update()
 
         switch (status)
         {
+        case WL_CONNECTION_LOST:
         case WL_DISCONNECTED:
+        case WL_CONNECT_FAILED:
             connect();
             break;
         }

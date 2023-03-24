@@ -33,6 +33,7 @@ void MqttController::connect()
     Serial.print(":");
     Serial.println(port);
 
+    mqttClient.stop();
     if (!mqttClient.connect(host, port))
     {
         Serial.print("MQTT connection failed! Error code: ");
@@ -125,7 +126,7 @@ void MqttController::setup()
 
 void MqttController::loop()
 {
-    if (!mqttClient.connected())
+    if (!mqttClient.connected() || WiFi.status() != WL_CONNECTED)
     {
         this->reconnectAutomatically();
         return;

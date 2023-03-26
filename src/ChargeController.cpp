@@ -48,11 +48,13 @@ void ChargeController::updateVehicleState()
                 if (vehicleState == EV_Connected || vehicleState == EV_Ready)
                 {
                     pilot.currentLimit(this->currentLimit);
-                } else if (vehicleState != EV_Connected && vehicleState != EV_Ready) {
+                }
+                else if (vehicleState != EV_Connected && vehicleState != EV_Ready)
+                {
                     pilot.standby();
                 }
 
-                if (this->vehicleStateChange) 
+                if (this->vehicleStateChange)
                 {
                     this->vehicleStateChange();
                 }
@@ -94,7 +96,7 @@ void ChargeController::update()
 {
     this->updateVehicleState();
 
-    if (this->vehicleState != EV_Connected && this->vehicleState != EV_Ready)
+    if (this->vehicleState != EV_Ready)
     {
         if (this->state == Charging)
         {
@@ -111,9 +113,9 @@ void ChargeController::startCharging()
         return;
     }
 
-    if (this->vehicleState != EV_Connected && this->vehicleState != EV_Ready)
+    if (this->vehicleState != EV_Ready)
     {
-        Serial.println("Vehicle not connected");
+        Serial.println("Vehicle not ready");
         return;
     }
 
@@ -186,7 +188,7 @@ void ChargeController::setCurrentLimit(float amps)
     }
 }
 
-Pilot* ChargeController::getPilot()
+Pilot *ChargeController::getPilot()
 {
     return &this->pilot;
 }

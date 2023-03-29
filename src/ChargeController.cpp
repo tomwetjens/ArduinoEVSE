@@ -16,6 +16,7 @@
  */
 
 #include <Arduino.h>
+
 #include "ChargeController.h"
 #include "Pilot.h"
 
@@ -34,7 +35,7 @@ void ChargeController::updateVehicleState()
 
         if (vehicleState == VehicleConnected || vehicleState == VehicleReady)
         {
-            // Switch from pilot standby to advertising the current limit as soon as vehicle is connected/ready
+            // Switch pilot from standby to advertising the current limit as soon as vehicle is connected/ready
             pilot.currentLimit(this->currentLimit);
         }
         else if (vehicleState != VehicleConnected && vehicleState != VehicleReady)
@@ -90,6 +91,7 @@ void ChargeController::setup(ChargingSettings settings)
 
     this->settings = settings;
     this->currentLimit = this->settings.maxCurrent;
+    this->currentLimitLastUpdated = millis();
     this->vehicleState = VehicleNotConnected;
     this->state = Ready;
 }

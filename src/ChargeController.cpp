@@ -1,17 +1,17 @@
-/* 
+/*
  * This file is part of the ArduinoEVSE (https://github.com/tomwetjens/ArduinoEVSE).
  * Copyright (c) 2023 Tom Wetjens.
- * 
- * This program is free software: you can redistribute it and/or modify  
- * it under the terms of the GNU General Public License as published by  
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3.
  *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License 
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -33,16 +33,15 @@ void ChargeController::updateVehicleState()
         Serial.print("Vehicle state: ");
         Serial.println(vehicleStateToText(vehicleState));
 
-        if (vehicleState == VehicleConnected || vehicleState == VehicleReady)
+        if (this->vehicleState != VehicleReady)
         {
-            // Switch pilot from standby to advertising the current limit as soon as vehicle is connected/ready
-            pilot.currentLimit(this->currentLimit);
+            if (this->state == Charging)
+            {
+                this->stopCharging();
+            }
         }
-        else if (vehicleState != VehicleConnected && vehicleState != VehicleReady)
-        {
-            // Switch pilot to standby as soon as vehicle is disconnected
-            pilot.standby();
-        }
+
+        this->applyCurrentLimit();
 
         if (this->vehicleStateChange)
         {
@@ -99,15 +98,6 @@ void ChargeController::setup(ChargingSettings settings)
 void ChargeController::loop()
 {
     this->updateVehicleState();
-
-    if (this->vehicleState != VehicleReady)
-    {
-        if (this->state == Charging)
-        {
-            this->stopCharging();
-        }
-    }
-
     this->fallbackCurrentIfNeeded();
 }
 
@@ -193,20 +183,37 @@ void ChargeController::setCurrentLimit(float amps)
     Serial.print(amps);
     Serial.println(" A");
 
+    this->applyCurrentLimit();
+}
+
+void ChargeController::applyCurrentLimit()
+{
     if (this->vehicleState == VehicleConnected || this->vehicleState == VehicleReady)
     {
-        pilot.currentLimit(currentLimit);
-
         if (currentLimit < MIN_CURRENT)
         {
-            // We need to advertise at least 6A to the EV, so for anything less just open relay (temporarily)
+            // We need to advertise at least 6A to the EV, so for anything less just we go to standby
             this->openRelay();
+            pilot.standby();
         }
         else
         {
-            // Ensure relay is closed
-            this->closeRelay();
+            // Switch pilot from standby to advertising the current limit as soon as vehicle is connected/ready
+            pilot.currentLimit(currentLimit);
+
+            if (this->state == Charging)
+            {
+                // Close relay again if it was temporarily open
+                this->closeRelay();
+            }
         }
+    }
+    else if (vehicleState != VehicleConnected && vehicleState != VehicleReady)
+    {
+        // Switch pilot to standby as soon as vehicle is disconnected or no longer ready
+        pilot.standby();
+        // Ensure relay is open
+        this->openRelay();
     }
 }
 
@@ -214,7 +221,6 @@ unsigned long ChargeController::getElapsedTime()
 {
     return millis() - this->started;
 }
-
 
 Pilot *ChargeController::getPilot()
 {

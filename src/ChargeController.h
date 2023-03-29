@@ -61,6 +61,7 @@ private:
     EventHandler stateChange;
     void updateVehicleState();
     void fallbackCurrentIfNeeded();
+    void applyCurrentLimit();
     void closeRelay();
     void openRelay();
 

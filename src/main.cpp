@@ -59,7 +59,7 @@ void setup()
   Serial.println("ArduinoEVSE");
 
   display.setup();
-  chargeController.setup();
+  chargeController.setup({});
   networkManager.setup();
   mqttController.setup();
 
@@ -71,20 +71,10 @@ void setup()
 
 void loop()
 {
-  chargeController.update();
-  display.update();
-  networkManager.update();
+  chargeController.loop();
+  display.loop();
+  networkManager.loop();
   mqttController.loop();
-
-  if (!mqttController.isConnected())
-  {
-    // For safety reasons, we have to fall back to a safe charging current
-    if (chargeController.getState() == Charging && chargeController.getCurrentLimit() > 6)
-    {
-      Serial.println("MQTT disconnected. Falling back to safe charging current");
-      chargeController.setCurrentLimit(6);
-    }
-  }
 
   updateLED();
 }

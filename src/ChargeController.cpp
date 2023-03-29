@@ -4,67 +4,52 @@
 
 #define PIN_AC_RELAY 8
 
-#define EV_STATE_DEBOUNCE_MILLIS 500
-
-unsigned long lastReadVehicleStateMillis = 0;
-VehicleState lastReadVehicleState = EV_NotConnected;
-
-String getVehicleStateText(VehicleState vehicleState)
-{
-    switch (vehicleState)
-    {
-    case EV_NotConnected:
-        return "Not connected";
-    case EV_Connected:
-        return "Connected, not ready";
-    case EV_Ready:
-        return "Ready";
-    case EV_ReadyVentilationRequired:
-        return "Ready, ventilation required";
-    case EV_NoPower:
-        return "No power";
-    case EV_Error:
-        return "Error";
-    default:
-        return "Unknown";
-    }
-}
-
 void ChargeController::updateVehicleState()
 {
     VehicleState vehicleState = pilot.read();
 
-    if (lastReadVehicleState == vehicleState)
+    if (this->vehicleState != vehicleState)
     {
-        if (millis() - lastReadVehicleStateMillis >= EV_STATE_DEBOUNCE_MILLIS)
+        this->vehicleState = vehicleState;
+
+        Serial.print("Vehicle state: ");
+        Serial.println(vehicleStateToText(vehicleState));
+
+        if (vehicleState == VehicleConnected || vehicleState == VehicleReady)
         {
-            if (this->vehicleState != vehicleState)
-            {
-                this->vehicleState = vehicleState;
+            // Switch from pilot standby to advertising the current limit as soon as vehicle is connected/ready
+            pilot.currentLimit(this->currentLimit);
+        }
+        else if (vehicleState != VehicleConnected && vehicleState != VehicleReady)
+        {
+            // Switch pilot to standby as soon as vehicle is disconnected
+            pilot.standby();
+        }
 
-                Serial.print("Vehicle state: ");
-                Serial.println(getVehicleStateText(vehicleState));
-
-                if (vehicleState == EV_Connected || vehicleState == EV_Ready)
-                {
-                    pilot.currentLimit(this->currentLimit);
-                }
-                else if (vehicleState != EV_Connected && vehicleState != EV_Ready)
-                {
-                    pilot.standby();
-                }
-
-                if (this->vehicleStateChange)
-                {
-                    this->vehicleStateChange();
-                }
-            }
+        if (this->vehicleStateChange)
+        {
+            this->vehicleStateChange();
         }
     }
-    else
+}
+
+void ChargeController::fallbackCurrentIfNeeded()
+{
+    // When timeout is configured (indicating that fallback is enabled)
+    if (this->settings.loadBalancing.currentLimitTimeout > 0)
     {
-        lastReadVehicleState = vehicleState;
-        lastReadVehicleStateMillis = millis();
+        // When current limit is outdated (timeout exceeded)
+        if (millis() - currentLimitLastUpdated >= this->settings.loadBalancing.currentLimitTimeout)
+        {
+            // For safety reasons, we have to fall back to a safe charging current
+
+            // When not already at a safe current
+            if (currentLimit > this->settings.loadBalancing.fallbackCurrent)
+            {
+                Serial.println("Current limit timeout. Falling back to safe charging current");
+                setCurrentLimit(this->settings.loadBalancing.fallbackCurrent);
+            }
+        }
     }
 }
 
@@ -78,7 +63,7 @@ void ChargeController::openRelay()
     digitalWrite(PIN_AC_RELAY, LOW);
 }
 
-void ChargeController::setup()
+void ChargeController::setup(ChargingSettings settings)
 {
     pinMode(PIN_AC_RELAY, OUTPUT);
     openRelay();
@@ -86,23 +71,25 @@ void ChargeController::setup()
     this->pilot = Pilot();
     this->pilot.standby();
 
-    this->maxCurrent = 16;
-    this->currentLimit = this->maxCurrent;
-    this->vehicleState = EV_NotConnected;
+    this->settings = settings;
+    this->currentLimit = this->settings.maxCurrent;
+    this->vehicleState = VehicleNotConnected;
     this->state = Ready;
 }
 
-void ChargeController::update()
+void ChargeController::loop()
 {
     this->updateVehicleState();
 
-    if (this->vehicleState != EV_Ready)
+    if (this->vehicleState != VehicleReady)
     {
         if (this->state == Charging)
         {
             this->stopCharging();
         }
     }
+
+    this->fallbackCurrentIfNeeded();
 }
 
 void ChargeController::startCharging()
@@ -113,20 +100,18 @@ void ChargeController::startCharging()
         return;
     }
 
-    if (this->vehicleState != EV_Ready)
+    if (this->vehicleState != VehicleReady)
     {
         Serial.println("Vehicle not ready");
         return;
     }
 
     Serial.println("Start charging");
-
-    pilot.currentLimit(this->currentLimit);
     this->closeRelay();
 
     this->state = Charging;
 
-    this->startMillis = millis();
+    this->started = millis();
 
     if (this->stateChange)
     {
@@ -136,6 +121,7 @@ void ChargeController::startCharging()
 
 void ChargeController::stopCharging()
 {
+    // Ensure relay is open regardless of administrative state
     this->openRelay();
 
     if (this->state != Charging)
@@ -164,11 +150,6 @@ VehicleState ChargeController::getVehicleState()
     return this->vehicleState;
 }
 
-unsigned long ChargeController::getElapsedTime()
-{
-    return millis() - this->startMillis;
-}
-
 float ChargeController::getCurrentLimit()
 {
     return this->currentLimit;
@@ -176,17 +157,45 @@ float ChargeController::getCurrentLimit()
 
 void ChargeController::setCurrentLimit(float amps)
 {
+    if (amps < 0)
+    {
+        amps = 0;
+    }
+    else if (amps > this->settings.maxCurrent)
+    {
+        // May never exceed max current
+        amps = this->settings.maxCurrent;
+    }
+
     this->currentLimit = amps;
+    this->currentLimitLastUpdated = millis();
 
     Serial.print("Setting current limit to ");
     Serial.print(amps);
     Serial.println(" A");
 
-    if (this->vehicleState == EV_Connected || this->vehicleState == EV_Ready)
+    if (this->vehicleState == VehicleConnected || this->vehicleState == VehicleReady)
     {
         pilot.currentLimit(currentLimit);
+
+        if (currentLimit < MIN_CURRENT)
+        {
+            // We need to advertise at least 6A to the EV, so for anything less just open relay (temporarily)
+            this->openRelay();
+        }
+        else
+        {
+            // Ensure relay is closed
+            this->closeRelay();
+        }
     }
 }
+
+unsigned long ChargeController::getElapsedTime()
+{
+    return millis() - this->started;
+}
+
 
 Pilot *ChargeController::getPilot()
 {

@@ -11,10 +11,13 @@ private:
 
 public:
     void setup();
-    void update();
+    void loop();
+
     bool isConnected();
+
+    // Event handlers
     void onConnected(EventHandler handler);
     void onDisconnected(EventHandler handler);
 };
 
-#endif
+#endif // NETWORKMANAGER_H_

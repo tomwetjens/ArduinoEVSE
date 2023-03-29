@@ -63,15 +63,28 @@ I used a [ABB F200 B Type](https://new.abb.com/low-voltage/products/system-pro-m
 
 ![Hardware overview](docs/hardware_overview.png)
 
-## Build
+## Getting Started
+
+The project uses [PlatformIO](https://platformio.org/) to build and upload the firmware to the Arduino. You can use the VSCode plugin or install PlatformIO CLI.
 
 Create a file `src/arduino_secrets.h`:
 ```
 #define WIFI_SSID "myssid"
 #define WIFI_WPA_PASS "mypass"
 ```
+This is needed to set the WiFi SSID and password until it is possible to configure through some other means.
 
-Use PlatformIO to build and upload to Arduino. I used the VSCode plugin.
+Make sure your Arduino is connected to your computer and is detected by PlatformIO:
+```
+pio device list
+```
+
+Run PlatformIO to build and upload the firmware. It should download the necessary libraries automatically:
+```
+pio run -t upload
+```
+
+After this is successful you can disconnect the Arduino and it will run the firmware on its own.
 
 ## MQTT
 

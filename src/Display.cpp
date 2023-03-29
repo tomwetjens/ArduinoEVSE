@@ -21,12 +21,12 @@ void Display::setup()
     lcd.setCursor(0, 0);
 }
 
-void Display::update()
+void Display::loop()
 {
     State state = this->chargeController->getState();
     unsigned long now = millis();
 
-    if (state != lastUpdateState || now - lastUpdateMillis >= 1000)
+    if (state != lastUpdateState || now - lastUpdated >= 1000)
     {
         lcd.clear();
 
@@ -58,7 +58,7 @@ void Display::update()
         this->printCurrentLimit(this->chargeController->getCurrentLimit());
 
         lastUpdateState = state;
-        lastUpdateMillis = now;
+        lastUpdated = now;
     }
 }
 

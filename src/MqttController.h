@@ -25,10 +25,13 @@ private:
 
 public:
     MqttController(ChargeController& chargeController);
+    
     void setup();
     void loop();
+
     void sendUpdate();
+
     bool isConnected();
 };
 
-#endif
+#endif // MQTTCONTROLLER_H_

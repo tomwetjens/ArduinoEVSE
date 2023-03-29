@@ -19,7 +19,7 @@ WiFiClient wifiClient;
 MqttClient mqttClient(wifiClient);
 
 unsigned long lastConnectMillis = 0;
-unsigned long lastUpdateSentMillis = 0;
+unsigned long lastUpdateSent = 0;
 
 #define MAX_MSG_LEN 50
 char msg[MAX_MSG_LEN];
@@ -33,7 +33,7 @@ void MqttController::connect()
     Serial.print(":");
     Serial.println(port);
 
-    mqttClient.stop();
+    mqttClient.stop(); // ensure socket is closed in case of reconnect
     if (!mqttClient.connect(host, port))
     {
         Serial.print("MQTT connection failed! Error code: ");
@@ -59,7 +59,7 @@ void MqttController::reconnectAutomatically()
 
 void MqttController::sendPeriodicUpdate()
 {
-    if (millis() - lastUpdateSentMillis >= updateInterval)
+    if (millis() - lastUpdateSent >= updateInterval)
     {
         this->sendUpdate();
     }
@@ -69,7 +69,10 @@ void MqttController::onMessage(int size)
 {
     memset(msg, '\0', MAX_MSG_LEN);
     if (size > MAX_MSG_LEN)
+    {
         size = MAX_MSG_LEN;
+    }
+
     if (mqttClient.read(msg, size) > 0)
     {
         this->processMessage(msg);
@@ -154,7 +157,7 @@ void MqttController::sendUpdate()
     float currentLimitFraction = currentLimit - (int)currentLimit;
     int currentLimitDecimals = currentLimitFraction * 10;
 
-    Pilot* pilot = this->chargeController->getPilot();
+    Pilot *pilot = this->chargeController->getPilot();
     float pilotVoltage = pilot->getLastPilotVoltage();
     float pilotVoltageFraction = pilotVoltage - (int)pilotVoltage;
     int pilotVoltageDecimals = pilotVoltageFraction * 10;
@@ -177,7 +180,7 @@ void MqttController::sendUpdate()
     mqttClient.print(msg);
     mqttClient.endMessage();
 
-    lastUpdateSentMillis = millis();
+    lastUpdateSent = millis();
 }
 
 bool MqttController::isConnected()

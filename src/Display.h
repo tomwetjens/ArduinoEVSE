@@ -12,9 +12,8 @@ private:
     NetworkManager *networkManager;
     MqttController *mqttController;
     State lastUpdateState;
-    unsigned long lastUpdateMillis;
+    unsigned long lastUpdated;
     void printStatus(String status);
-    void printActualCurrent(float amps);
     void printCurrentLimit(float amps);
     void printElapsedTime();
 
@@ -23,7 +22,7 @@ public:
             NetworkManager &networkManager,
             MqttController &mqttController);
     void setup();
-    void update();
+    void loop();
 };
 
-#endif
+#endif // DISPLAY_H_

@@ -1,20 +1,25 @@
 #ifndef PILOT_H_  _
 #define PILOT_H_  _
 
+#define MIN_CURRENT 6
+#define MAX_CURRENT 80
+
 enum VehicleState
 {
-    EV_NotConnected,
-    EV_Connected,
-    EV_Ready,
-    EV_ReadyVentilationRequired,
-    EV_NoPower,
-    EV_Error
+    VehicleNotConnected,
+    VehicleConnected,
+    VehicleReady,
+    VehicleReadyVentilationRequired,
+    VehicleNoPower,
+    VehicleError
 };
+
+String vehicleStateToText(VehicleState vehicleState);
 
 class Pilot {
     private:
-      float lastPilotVoltage;
-      float lastPinVoltage;
+      float pilotVoltage;
+      float pinVoltage;
       float readPin();
     public:
       VehicleState read();

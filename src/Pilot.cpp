@@ -11,9 +11,6 @@
 #define PIN_PILOT_IN_MAX_VOLTAGE 4.47 // @ 12V pilot, measured
 #define PIN_PILOT_IN PIN_A1
 
-#define MIN_CURRENT 6
-#define MAX_CURRENT 80
-
 #define USING_TIMERB true
 megaAVR_PWM *PWM_Instance = new megaAVR_PWM(PIN_PILOT_PWM, PILOT_FREQUENCY, 0);
 
@@ -59,22 +56,20 @@ void Pilot::currentLimit(float amps)
 
 float Pilot::getLastPilotVoltage()
 {
-    return this->lastPilotVoltage;
+    return this->pilotVoltage;
 }
 
 float Pilot::getLastPinVoltage()
 {
-    return this->lastPinVoltage;
+    return this->pinVoltage;
 }
 
 float Pilot::readPin()
 {
-    int pinValue = analogReadMax(PIN_PILOT_IN, 10);
-    float pinVoltage = (pinValue / 1023.0) * 5.0;                                                                    // 0-5
-    float pilotVoltage = ((pinVoltage - PIN_PILOT_IN_MIN_VOLTAGE) / (PIN_PILOT_IN_MAX_VOLTAGE - PIN_PILOT_IN_MIN_VOLTAGE)) * 12.0; // 0-12
-    this->lastPinVoltage = pinVoltage;
-    this->lastPilotVoltage = pilotVoltage;
-    return pilotVoltage;
+    int pinValue = analogReadMax(PIN_PILOT_IN, 10); // 0-1024
+    this->pinVoltage = (pinValue / 1023.0) * 5.0;   // 0-5V
+    this->pilotVoltage  = ((this->pinVoltage - PIN_PILOT_IN_MIN_VOLTAGE) / (PIN_PILOT_IN_MAX_VOLTAGE - PIN_PILOT_IN_MIN_VOLTAGE)) * 12.0; // 0-12V
+    return this->pilotVoltage;
 }
 
 VehicleState Pilot::read()
@@ -83,26 +78,47 @@ VehicleState Pilot::read()
 
     if (voltage >= 11) // 12V +/-1V
     {
-        return EV_NotConnected;
+        return VehicleNotConnected;
     }
     else if (voltage >= 8) // 9V +/-1V
     {
-        return EV_Connected;
+        return VehicleConnected;
     }
     else if (voltage >= 5) // 6V +/-1V
     {
-        return EV_Ready;
+        return VehicleReady;
     }
     else if (voltage >= 2) // 3V +/-1V
     {
-        return EV_ReadyVentilationRequired;
+        return VehicleReadyVentilationRequired;
     }
     else if (voltage >= 0) // 0V
     {
-        return EV_NoPower;
+        return VehicleNoPower;
     }
     else
     {
-        return EV_Error; // -12V
+        return VehicleError; // -12V
+    }
+}
+
+String vehicleStateToText(VehicleState vehicleState)
+{
+    switch (vehicleState)
+    {
+    case VehicleNotConnected:
+        return "Not connected";
+    case VehicleConnected:
+        return "Connected, not ready";
+    case VehicleReady:
+        return "Ready";
+    case VehicleReadyVentilationRequired:
+        return "Ready, ventilation required";
+    case VehicleNoPower:
+        return "No power";
+    case VehicleError:
+        return "Error";
+    default:
+        return "Unknown";
     }
 }

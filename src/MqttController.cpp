@@ -25,7 +25,6 @@
 #include "MqttController.h"
 
 #define MAX_MSG_LEN 50
-char msg[MAX_MSG_LEN];
 
 void MqttController::connect()
 {
@@ -70,7 +69,9 @@ void MqttController::sendPeriodicUpdate()
 
 void MqttController::onMessage(int size)
 {
+    char msg[MAX_MSG_LEN];
     memset(msg, '\0', MAX_MSG_LEN);
+
     if (size > MAX_MSG_LEN)
     {
         size = MAX_MSG_LEN;
@@ -166,7 +167,7 @@ void MqttController::sendUpdate()
     int currentLimitDecimals = currentLimitFraction * 10;
 
     Pilot *pilot = this->chargeController->getPilot();
-    float pilotVoltage = pilot->getLastPilotVoltage();
+    float pilotVoltage = pilot->getVoltage();
     float pilotVoltageFraction = pilotVoltage - (int)pilotVoltage;
     int pilotVoltageDecimals = pilotVoltageFraction * 10;
 

@@ -20,7 +20,7 @@
 
 #include "Pilot.h"
 
-#define PILOT_FREQUENCY 1000
+#define PILOT_FREQUENCY 1000 // 1 kHz
 #define PILOT_STANDBY_DUTY_CYCLE 99
 #define PIN_PILOT_PWM 10
 
@@ -71,22 +71,17 @@ void Pilot::currentLimit(float amps)
     PWM_Instance->setPWM(PIN_PILOT_PWM, PILOT_FREQUENCY, dutyCycle);
 }
 
-float Pilot::getLastPilotVoltage()
+float Pilot::getVoltage()
 {
-    return this->pilotVoltage;
-}
-
-float Pilot::getLastPinVoltage()
-{
-    return this->pinVoltage;
+    return this->voltage;
 }
 
 float Pilot::readPin()
 {
     int pinValue = analogReadMax(PIN_PILOT_IN, 10); // 0-1024
-    this->pinVoltage = (pinValue / 1023.0) * 5.0;   // 0-5V
-    this->pilotVoltage  = ((this->pinVoltage - PIN_PILOT_IN_MIN_VOLTAGE) / (PIN_PILOT_IN_MAX_VOLTAGE - PIN_PILOT_IN_MIN_VOLTAGE)) * 12.0; // 0-12V
-    return this->pilotVoltage;
+    float pinVoltage = (pinValue / 1023.0) * 5.0;   // 0-5V
+    this->voltage  = ((pinVoltage - PIN_PILOT_IN_MIN_VOLTAGE) / (PIN_PILOT_IN_MAX_VOLTAGE - PIN_PILOT_IN_MIN_VOLTAGE)) * 12.0; // 0-12V
+    return this->voltage;
 }
 
 VehicleState Pilot::read()

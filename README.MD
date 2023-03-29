@@ -12,8 +12,6 @@ I use [Domoticz](https://github.com/domoticz/domoticz), [Mosquitto](https://gith
 
 Domoticz, Mosquitto and Node-RED run on a Raspberry Pi. I connected the smart meter with a P1 to USB adapter. This gives me the total household load. I use a [ABB EV3 012-100 kWh meter](https://new.abb.com/products/2CMA290881R1000/ev3-012-100) that I read through a Modbus RS486 to USB adapter. This gives me the actual charging current and also measures the total kWh charged for financial purposes.
 
-![Hardware overview](docs/hardware_overview.png)
-
 ### Controlling the ArduinoEVSE
 
 By setting up some dummy switches and sensors in Domoticz and connecting them to the ArduinoEVSE through Node-RED, I can start, stop and monitor the charging through the Domoticz app.
@@ -29,6 +27,8 @@ In Node-RED I set up some flows to do the load balancing calculations and send t
 
 
 ## Hardware
+![Hardware overview](docs/hardware_overview.png)
+
 I got the [Arduino Uno WiFi Rev2](https://store.arduino.cc/products/arduino-uno-wifi-rev2) board.
 
 And 2 [Proto Shields (Uno Size)](https://store.arduino.cc/collections/shields/products/proto-shield-rev3-uno-size) to solder the custom circuits on and be able to easily plug it onto the Arduino.

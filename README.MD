@@ -12,6 +12,8 @@ I use [Domoticz](https://github.com/domoticz/domoticz), [Mosquitto](https://gith
 
 Domoticz, Mosquitto and Node-RED run on a Raspberry Pi. I connected the smart meter with a P1 to USB adapter. This gives me the total household load. I use a [ABB EV3 012-100 kWh meter](https://new.abb.com/products/2CMA290881R1000/ev3-012-100) that I read through a Modbus RS486 to USB adapter. This gives me the actual charging current and also measures the total kWh charged for financial purposes.
 
+![Hardware overview](docs/hardware_overview.png)
+
 ### Controlling the ArduinoEVSE
 
 By setting up some dummy switches and sensors in Domoticz and connecting them to the ArduinoEVSE through Node-RED, I can start, stop and monitor the charging through the Domoticz app.
@@ -60,8 +62,6 @@ This AC contactor is 3 phase, normally open and rated for 400V 40A which is more
 
 Some EVSEs have a Ground Fault Circuit Interrupter built-in, but I chose to externalize it and put it in my fuse box next. 
 I used a [ABB F200 B Type](https://new.abb.com/low-voltage/products/system-pro-m/residual-current-devices/f200-b-type) residual current circuit breakers that is also sensitive to DC currents. 
-
-![Hardware overview](docs/hardware_overview.png)
 
 ## Getting Started
 

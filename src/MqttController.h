@@ -30,10 +30,21 @@ enum Command
     SetCurrentLimit = 2,
 };
 
+struct MqttSettings
+{
+    char host[253] = "192.168.1.44";
+    int port = 1883;
+    char inTopic[100] = "ArduinoEVSE/in";
+    char outTopic[100] = "ArduinoEVSE/out";
+    unsigned long reconnectInterval = 5000;
+    unsigned long updateInterval = 5000;
+};
+
 class MqttController
 {
 private:
     ChargeController *chargeController;
+    MqttSettings settings;
     WiFiClient *wifiClient;
     MqttClient *mqttClient;
     unsigned long lastConnect = 0;
@@ -47,7 +58,7 @@ private:
 public:
     MqttController(ChargeController &chargeController);
 
-    void setup();
+    void setup(MqttSettings settings);
     void loop();
 
     void sendUpdate();

@@ -78,7 +78,7 @@ void setup()
   display.setup();
   chargeController.setup({});
   networkManager.setup();
-  mqttController.setup();
+  mqttController.setup({});
 
   chargeController.onStateChange(stateChanged);
   chargeController.onVehicleStateChange(vehicleStateChanged);

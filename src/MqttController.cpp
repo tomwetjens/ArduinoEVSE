@@ -24,13 +24,6 @@
 
 #include "MqttController.h"
 
-const char host[] = "192.168.1.44";
-const int port = 1883;
-const char inTopic[] = "ArduinoEVSE/in";
-const char outTopic[] = "ArduinoEVSE/out";
-const unsigned long reconnectInterval = 5000;
-const unsigned long updateInterval = 5000;
-
 #define MAX_MSG_LEN 50
 char msg[MAX_MSG_LEN];
 
@@ -39,12 +32,12 @@ void MqttController::connect()
     this->lastConnect = millis();
 
     Serial.print("Attempting to connect to the MQTT broker: ");
-    Serial.print(host);
+    Serial.print(this->settings.host);
     Serial.print(":");
-    Serial.println(port);
+    Serial.println(this->settings.port);
 
     this->mqttClient->stop(); // ensure socket is closed in case of reconnect
-    if (!this->mqttClient->connect(host, port))
+    if (!this->mqttClient->connect(this->settings.host, this->settings.port))
     {
         Serial.print("MQTT connection failed! Error code: ");
         Serial.println(this->mqttClient->connectError());
@@ -53,15 +46,15 @@ void MqttController::connect()
     Serial.println("Connected to the MQTT broker");
 
     Serial.print("Subscribing to topic: ");
-    Serial.println(inTopic);
-    this->mqttClient->subscribe(inTopic);
+    Serial.println(this->settings.inTopic);
+    this->mqttClient->subscribe(this->settings.inTopic);
 
     this->sendUpdate();
 }
 
 void MqttController::reconnectAutomatically()
 {
-    if (WiFi.status() == WL_CONNECTED && millis() - lastConnect >= reconnectInterval)
+    if (WiFi.status() == WL_CONNECTED && millis() - lastConnect >= this->settings.reconnectInterval)
     {
         this->connect();
     }
@@ -69,7 +62,7 @@ void MqttController::reconnectAutomatically()
 
 void MqttController::sendPeriodicUpdate()
 {
-    if (millis() - lastUpdateSent >= updateInterval)
+    if (millis() - lastUpdateSent >= this->settings.updateInterval)
     {
         this->sendUpdate();
     }
@@ -137,8 +130,9 @@ MqttController::MqttController(ChargeController &chargeController)
     this->lastUpdateSent = 0;
 }
 
-void MqttController::setup()
+void MqttController::setup(MqttSettings settings)
 {
+    this->settings = settings;
 }
 
 void MqttController::loop()
@@ -186,11 +180,11 @@ void MqttController::sendUpdate()
             pilotVoltageDecimals);
 
     Serial.print("Sending message to ");
-    Serial.print(outTopic);
+    Serial.print(this->settings.outTopic);
     Serial.print(": ");
     Serial.println(msg);
 
-    this->mqttClient->beginMessage(outTopic);
+    this->mqttClient->beginMessage(this->settings.outTopic);
     this->mqttClient->print(msg);
     this->mqttClient->endMessage();
 

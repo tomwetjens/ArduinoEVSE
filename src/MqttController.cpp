@@ -1,17 +1,17 @@
-/* 
+/*
  * This file is part of the ArduinoEVSE (https://github.com/tomwetjens/ArduinoEVSE).
  * Copyright (c) 2023 Tom Wetjens.
- * 
- * This program is free software: you can redistribute it and/or modify  
- * it under the terms of the GNU General Public License as published by  
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3.
  *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License 
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -31,44 +31,37 @@ const char outTopic[] = "ArduinoEVSE/out";
 const unsigned long reconnectInterval = 5000;
 const unsigned long updateInterval = 5000;
 
-WiFiClient wifiClient;
-
-MqttClient mqttClient(wifiClient);
-
-unsigned long lastConnectMillis = 0;
-unsigned long lastUpdateSent = 0;
-
 #define MAX_MSG_LEN 50
 char msg[MAX_MSG_LEN];
 
 void MqttController::connect()
 {
-    lastConnectMillis = millis();
+    this->lastConnect = millis();
 
     Serial.print("Attempting to connect to the MQTT broker: ");
     Serial.print(host);
     Serial.print(":");
     Serial.println(port);
 
-    mqttClient.stop(); // ensure socket is closed in case of reconnect
-    if (!mqttClient.connect(host, port))
+    this->mqttClient->stop(); // ensure socket is closed in case of reconnect
+    if (!this->mqttClient->connect(host, port))
     {
         Serial.print("MQTT connection failed! Error code: ");
-        Serial.println(mqttClient.connectError());
+        Serial.println(this->mqttClient->connectError());
     }
 
     Serial.println("Connected to the MQTT broker");
 
     Serial.print("Subscribing to topic: ");
     Serial.println(inTopic);
-    mqttClient.subscribe(inTopic);
+    this->mqttClient->subscribe(inTopic);
 
     this->sendUpdate();
 }
 
 void MqttController::reconnectAutomatically()
 {
-    if (WiFi.status() == WL_CONNECTED && millis() - lastConnectMillis >= reconnectInterval)
+    if (WiFi.status() == WL_CONNECTED && millis() - lastConnect >= reconnectInterval)
     {
         this->connect();
     }
@@ -90,7 +83,7 @@ void MqttController::onMessage(int size)
         size = MAX_MSG_LEN;
     }
 
-    if (mqttClient.read(msg, size) > 0)
+    if (this->mqttClient->read(msg, size) > 0)
     {
         this->processMessage(msg);
     }
@@ -138,6 +131,10 @@ void MqttController::processMessage(char *msg)
 MqttController::MqttController(ChargeController &chargeController)
 {
     this->chargeController = &chargeController;
+    this->wifiClient = new WiFiClient();
+    this->mqttClient = new MqttClient(wifiClient);
+    this->lastConnect = 0;
+    this->lastUpdateSent = 0;
 }
 
 void MqttController::setup()
@@ -146,14 +143,14 @@ void MqttController::setup()
 
 void MqttController::loop()
 {
-    if (!mqttClient.connected() || WiFi.status() != WL_CONNECTED)
+    if (!this->mqttClient->connected() || WiFi.status() != WL_CONNECTED)
     {
         this->reconnectAutomatically();
         return;
     }
 
     int messageSize;
-    while (messageSize = mqttClient.parseMessage())
+    while (messageSize = this->mqttClient->parseMessage())
     {
         Serial.print("Received message of size: ");
         Serial.println(messageSize);
@@ -165,7 +162,7 @@ void MqttController::loop()
 
 void MqttController::sendUpdate()
 {
-    if (!mqttClient.connected())
+    if (!this->mqttClient->connected())
     {
         return;
     }
@@ -193,14 +190,14 @@ void MqttController::sendUpdate()
     Serial.print(": ");
     Serial.println(msg);
 
-    mqttClient.beginMessage(outTopic);
-    mqttClient.print(msg);
-    mqttClient.endMessage();
+    this->mqttClient->beginMessage(outTopic);
+    this->mqttClient->print(msg);
+    this->mqttClient->endMessage();
 
-    lastUpdateSent = millis();
+    this->lastUpdateSent = millis();
 }
 
 bool MqttController::isConnected()
 {
-    return mqttClient.connected();
+    return this->mqttClient->connected();
 }

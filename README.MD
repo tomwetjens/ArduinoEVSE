@@ -71,8 +71,10 @@ Create a file `src/arduino_secrets.h`:
 ```
 #define WIFI_SSID "myssid"
 #define WIFI_WPA_PASS "mypass"
+
+#define MQTT_HOST "192.168.1.44"
 ```
-This is needed to set the WiFi SSID and password until it is possible to configure through some other means.
+This is needed to set the WiFi and MQTT settings until it is possible to configure them through some other means.
 
 Make sure your Arduino is connected to your computer and is detected by PlatformIO:
 ```

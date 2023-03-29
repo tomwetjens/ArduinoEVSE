@@ -103,8 +103,8 @@ See `ChargeController.h` for the different state values.
 
 Send a message on the `ArduinoEVSE/in` topic to do the following:
 
-* Start Charging message: `0`
+* Start Charging message: `1`
 
-* Stop Charging message: `1`
+* Stop Charging message: `0`
 
 * Set Current Limit message: `2,<CurrentLimit>` for example `2,16.0`

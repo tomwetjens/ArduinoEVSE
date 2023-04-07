@@ -114,23 +114,23 @@ VehicleState Pilot::read()
     }
 }
 
-String vehicleStateToText(VehicleState vehicleState)
+void vehicleStateToText(VehicleState vehicleState, char *buffer)
 {
     switch (vehicleState)
     {
     case VehicleNotConnected:
-        return "Not connected";
+        buffer = "Not connected";
     case VehicleConnected:
-        return "Connected, not ready";
+        buffer = "Connected, not ready";
     case VehicleReady:
-        return "Ready";
+        buffer = "Ready";
     case VehicleReadyVentilationRequired:
-        return "Ready, ventilation required";
+        buffer = "Ready, ventilation required";
     case VehicleNoPower:
-        return "No power";
+        buffer = "No power";
     case VehicleError:
-        return "Error";
+        buffer = "Error";
     default:
-        return "Unknown";
+        buffer = "Unknown";
     }
 }

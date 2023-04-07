@@ -20,14 +20,22 @@
 
 using EventHandler = void (*)();
 
+struct WiFiSettings
+{
+    char ssid[100];
+    char password[100];
+};
+
 class NetworkManager
 {
 private:
+    WiFiSettings settings;
     EventHandler connected;
     EventHandler disconnected;
+    void connect();
 
 public:
-    void setup();
+    void setup(WiFiSettings settings);
     void loop();
 
     bool isConnected();

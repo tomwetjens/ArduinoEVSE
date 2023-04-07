@@ -1,17 +1,17 @@
-/* 
+/*
  * This file is part of the ArduinoEVSE (https://github.com/tomwetjens/ArduinoEVSE).
  * Copyright (c) 2023 Tom Wetjens.
- * 
- * This program is free software: you can redistribute it and/or modify  
- * it under the terms of the GNU General Public License as published by  
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3.
  *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License 
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -21,6 +21,8 @@
 #include "ChargeController.h"
 #include "NetworkManager.h"
 #include "MqttController.h"
+
+#include "arduino_secrets.h"
 
 #define LED_GREEN 13
 #define LED_RED 5
@@ -77,8 +79,15 @@ void setup()
 
   display.setup();
   chargeController.setup({});
-  networkManager.setup();
-  mqttController.setup({});
+
+  struct WiFiSettings wifiSettings;
+  strncpy(wifiSettings.ssid, WIFI_SSID, 100);
+  strncpy(wifiSettings.password, WIFI_WPA_PASS, 100);
+  networkManager.setup(wifiSettings);
+
+  struct MqttSettings mqttSettings;
+  strncpy(mqttSettings.host, MQTT_HOST, 253);
+  mqttController.setup(mqttSettings);
 
   chargeController.onStateChange(stateChanged);
   chargeController.onVehicleStateChange(vehicleStateChanged);

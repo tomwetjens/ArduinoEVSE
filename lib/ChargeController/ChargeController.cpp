@@ -31,7 +31,9 @@ void ChargeController::updateVehicleState()
         this->vehicleState = vehicleState;
 
         Serial.print("Vehicle state: ");
-        Serial.println(vehicleStateToText(vehicleState));
+        char vehicleStateText[50];
+        vehicleStateToText(vehicleState, vehicleStateText);
+        Serial.println(vehicleStateText);
 
         if (this->vehicleState != VehicleReady)
         {

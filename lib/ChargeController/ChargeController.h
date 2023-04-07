@@ -15,7 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CHARGECONTROLLER_H_  _
+#ifndef CHARGECONTROLLER_H_
 #define CHARGECONTROLLER_H_  _
 
 #include "Pilot.h"

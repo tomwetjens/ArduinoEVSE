@@ -20,25 +20,25 @@
 #include <SPI.h>
 #include <WiFiNINA.h>
 
-#include "arduino_secrets.h"
-
 unsigned long lastCheckMillis = 0;
 int lastStatus = WL_IDLE_STATUS;
 
-void connect()
+void NetworkManager::connect()
 {
     Serial.print("Connecting to WiFi network: ");
-    Serial.println(WIFI_SSID);
+    Serial.println(this->settings.ssid);
 
     WiFi.disconnect();
 
     // Attempt to connect to Wifi network:
-    lastStatus = WiFi.begin(WIFI_SSID, WIFI_WPA_PASS);
+    lastStatus = WiFi.begin(this->settings.ssid, this->settings.password);
     lastCheckMillis = millis();
 }
 
-void NetworkManager::setup()
+void NetworkManager::setup(WiFiSettings settings)
 {
+    this->settings = settings;
+
     if (WiFi.status() == WL_NO_MODULE)
     {
         Serial.println("Communication with WiFi module failed!");

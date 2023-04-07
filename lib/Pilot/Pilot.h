@@ -15,7 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PILOT_H_ _
+#ifndef PILOT_H_
 #define PILOT_H_ _
 
 // The minimum charge current of the EV Charger according to the IEC 61851 standard.
@@ -34,7 +34,7 @@ enum VehicleState
   VehicleError
 };
 
-String vehicleStateToText(VehicleState vehicleState);
+void vehicleStateToText(VehicleState vehicleState, char* buffer);
 
 /**
  * Type 2 "Control Pilot" according to IEC 62196 standard.

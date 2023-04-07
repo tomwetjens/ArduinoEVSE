@@ -23,8 +23,6 @@
 
 #include "ChargeController.h"
 
-#include "arduino_secrets.h"
-
 enum Command
 {
     StopChargingSession = 0,
@@ -34,7 +32,7 @@ enum Command
 
 struct MqttSettings
 {
-    char host[253] = MQTT_HOST;
+    char host[253];
     int port = 1883;
     char inTopic[100] = "ArduinoEVSE/in";
     char outTopic[100] = "ArduinoEVSE/out";

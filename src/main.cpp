@@ -81,12 +81,12 @@ void setup()
   chargeController.setup({});
 
   struct WiFiSettings wifiSettings;
-  strncpy(wifiSettings.ssid, WIFI_SSID, 100);
-  strncpy(wifiSettings.password, WIFI_WPA_PASS, 100);
+  strncpy(wifiSettings.ssid, WIFI_SSID, 33);
+  strncpy(wifiSettings.password, WIFI_WPA_PASS, 64);
   networkManager.setup(wifiSettings);
 
   struct MqttSettings mqttSettings;
-  strncpy(mqttSettings.host, MQTT_HOST, 253);
+  strncpy(mqttSettings.host, MQTT_HOST, 254);
   mqttController.setup(mqttSettings);
 
   chargeController.onStateChange(stateChanged);

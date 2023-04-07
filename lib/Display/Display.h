@@ -15,7 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DISPLAY_H_ _
+#ifndef DISPLAY_H_
 #define DISPLAY_H_ _
 
 #include "ChargeController.h"

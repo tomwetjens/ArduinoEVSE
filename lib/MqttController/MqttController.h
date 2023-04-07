@@ -15,7 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MQTTCONTROLLER_H_ _
+#ifndef MQTTCONTROLLER_H_
 #define MQTTCONTROLLER_H_ _
 
 #include <WiFiClient.h>
@@ -32,12 +32,12 @@ enum Command
 
 struct MqttSettings
 {
-    char host[253];
-    int port = 1883;
+    char host[254];
+    uint16_t port = 1883;
     char inTopic[100] = "ArduinoEVSE/in";
     char outTopic[100] = "ArduinoEVSE/out";
-    unsigned long reconnectInterval = 5000;
-    unsigned long updateInterval = 5000;
+    uint16_t reconnectInterval = 5000;
+    uint16_t updateInterval = 5000;
 };
 
 class MqttController

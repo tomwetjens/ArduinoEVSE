@@ -27,7 +27,7 @@ enum State
   Error
 };
 
-using EventHandler = void (*)();
+typedef void (*ChargeControllerEventHandler)();
 
 struct LoadBalancingSettings
 {
@@ -53,13 +53,13 @@ class ChargeController
 private:
   ChargingSettings settings;
   State state;
-  Pilot pilot;
+  Pilot *pilot;
   VehicleState vehicleState;
   float currentLimit;
   unsigned long currentLimitLastUpdated;
   unsigned long started;
-  EventHandler vehicleStateChange;
-  EventHandler stateChange;
+  ChargeControllerEventHandler vehicleStateChange;
+  ChargeControllerEventHandler stateChange;
   void updateVehicleState();
   void fallbackCurrentIfNeeded();
   void applyCurrentLimit();
@@ -67,6 +67,8 @@ private:
   void openRelay();
 
 public:
+  ChargeController(Pilot &pilot);
+
   void setup(ChargingSettings settings);
   void loop();
 
@@ -81,8 +83,8 @@ public:
   Pilot *getPilot();
 
   // Event handlers
-  void onVehicleStateChange(EventHandler handler);
-  void onStateChange(EventHandler handler);
+  void onVehicleStateChange(ChargeControllerEventHandler handler);
+  void onStateChange(ChargeControllerEventHandler handler);
 };
 
 #endif // CHARGECONTROLLER_H_

@@ -27,7 +27,8 @@
 #define LED_GREEN 13
 #define LED_RED 5
 
-ChargeController chargeController;
+Pilot pilot;
+ChargeController chargeController(pilot);
 NetworkManager networkManager;
 MqttController mqttController(chargeController);
 Display display(chargeController, networkManager, mqttController);

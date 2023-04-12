@@ -24,7 +24,7 @@
 
 void ChargeController::updateVehicleState()
 {
-    VehicleState vehicleState = pilot.read();
+    VehicleState vehicleState = this->pilot->read();
 
     if (this->vehicleState != vehicleState)
     {
@@ -82,13 +82,17 @@ void ChargeController::openRelay()
     digitalWrite(PIN_AC_RELAY, LOW);
 }
 
+ChargeController::ChargeController(Pilot &pilot)
+{
+    this->pilot = &pilot;
+}
+
 void ChargeController::setup(ChargingSettings settings)
 {
     pinMode(PIN_AC_RELAY, OUTPUT);
-    openRelay();
+    this->openRelay();
 
-    this->pilot = Pilot();
-    this->pilot.standby();
+    this->pilot->standby();
 
     this->settings = settings;
     this->currentLimit = this->settings.maxCurrent;
@@ -196,12 +200,12 @@ void ChargeController::applyCurrentLimit()
         {
             // We need to advertise at least 6A to the EV, so for anything less just we go to standby
             this->openRelay();
-            pilot.standby();
+            this->pilot->standby();
         }
         else
         {
             // Switch pilot from standby to advertising the current limit as soon as vehicle is connected/ready
-            pilot.currentLimit(currentLimit);
+            this->pilot->currentLimit(currentLimit);
 
             if (this->state == Charging)
             {
@@ -213,7 +217,7 @@ void ChargeController::applyCurrentLimit()
     else if (vehicleState != VehicleConnected && vehicleState != VehicleReady)
     {
         // Switch pilot to standby as soon as vehicle is disconnected or no longer ready
-        pilot.standby();
+        this->pilot->standby();
         // Ensure relay is open
         this->openRelay();
     }
@@ -226,15 +230,15 @@ unsigned long ChargeController::getElapsedTime()
 
 Pilot *ChargeController::getPilot()
 {
-    return &this->pilot;
+    return this->pilot;
 }
 
-void ChargeController::onVehicleStateChange(EventHandler handler)
+void ChargeController::onVehicleStateChange(ChargeControllerEventHandler handler)
 {
     this->vehicleStateChange = handler;
 }
 
-void ChargeController::onStateChange(EventHandler handler)
+void ChargeController::onStateChange(ChargeControllerEventHandler handler)
 {
     this->stateChange = handler;
 }

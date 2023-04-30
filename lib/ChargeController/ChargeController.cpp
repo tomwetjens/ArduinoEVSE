@@ -52,15 +52,30 @@ void ChargeController::updateVehicleState()
     }
 }
 
+void ChargeController::detectOverheat()
+{
+    if (this->tempSensor->read() >= this->settings.overheatTemp)
+    {
+        if (this->state != Overheat)
+        {
+            this->stopCharging();
+
+            Serial.println("Overheat! Stopping... You must reset after charger has cooled.");
+
+            this->state = Overheat;
+        }
+    }
+}
+
 void ChargeController::fallbackCurrentIfNeeded()
 {
-    // When timeout is configured (indicating that fallback is enabled)
+    // When fallback is enabled (timeout is configured)
     if (this->settings.loadBalancing.currentLimitTimeout > 0)
     {
         // When current limit is outdated (timeout exceeded)
         if (millis() - currentLimitLastUpdated >= this->settings.loadBalancing.currentLimitTimeout)
         {
-            // For safety reasons, we have to fall back to a safe charging current
+            // Fall back to a safe charging current (for safety reasons)
 
             // When not already at a safe current
             if (currentLimit > this->settings.loadBalancing.fallbackCurrent)
@@ -104,10 +119,8 @@ void ChargeController::setup(ChargingSettings settings)
 
 void ChargeController::loop()
 {
+    this->detectOverheat();
     this->updateVehicleState();
-
-    this->tempSensor->read();
-
     this->fallbackCurrentIfNeeded();
 }
 
@@ -203,6 +216,7 @@ void ChargeController::setCurrentLimit(float amps)
 
 void ChargeController::applyCurrentLimit()
 {
+    // Only advertise current limit when there is a vehicle connected
     if (this->vehicleState == VehicleConnected || this->vehicleState == VehicleReady)
     {
         if (currentLimit < MIN_CURRENT)

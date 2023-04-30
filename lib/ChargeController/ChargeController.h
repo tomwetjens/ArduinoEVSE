@@ -25,7 +25,8 @@ enum State
 {
   Ready,
   Charging,
-  Error
+  Error,
+  Overheat
 };
 
 typedef void (*ChargeControllerEventHandler)();
@@ -46,6 +47,9 @@ struct ChargingSettings
   // Max current (A) that installed cabling can handle and must never be exceeded
   uint8_t maxCurrent = 16;
 
+  // Temperature (C) at which charger is considered overheated - will immediately stop charging and must be reset to charge again
+  uint8_t overheatTemp = 70;
+
   LoadBalancingSettings loadBalancing;
 };
 
@@ -63,6 +67,7 @@ private:
   ChargeControllerEventHandler vehicleStateChange;
   ChargeControllerEventHandler stateChange;
   void updateVehicleState();
+  void detectOverheat();
   void fallbackCurrentIfNeeded();
   void applyCurrentLimit();
   void closeRelay();

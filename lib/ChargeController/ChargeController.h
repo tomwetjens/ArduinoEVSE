@@ -19,6 +19,7 @@
 #define CHARGECONTROLLER_H_ _
 
 #include "Pilot.h"
+#include <TempSensor.h>
 
 enum State
 {
@@ -54,6 +55,7 @@ private:
   ChargingSettings settings;
   State state;
   Pilot *pilot;
+  TempSensor *tempSensor;
   VehicleState vehicleState;
   float currentLimit;
   unsigned long currentLimitLastUpdated;
@@ -67,7 +69,7 @@ private:
   void openRelay();
 
 public:
-  ChargeController(Pilot &pilot);
+  ChargeController(Pilot &pilot, TempSensor &tempSensor);
 
   void setup(ChargingSettings settings);
   void loop();
@@ -81,6 +83,7 @@ public:
   float getCurrentLimit();
   void setCurrentLimit(float amps);
   Pilot *getPilot();
+  float getTemp();
 
   // Event handlers
   void onVehicleStateChange(ChargeControllerEventHandler handler);

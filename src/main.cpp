@@ -21,6 +21,7 @@
 #include "ChargeController.h"
 #include "NetworkManager.h"
 #include "MqttController.h"
+#include <TempSensor.h>
 
 #include "arduino_secrets.h"
 
@@ -28,7 +29,8 @@
 #define LED_RED 5
 
 Pilot pilot;
-ChargeController chargeController(pilot);
+TempSensor tempSensor(PIN_A2);
+ChargeController chargeController(pilot, tempSensor);
 NetworkManager networkManager;
 MqttController mqttController(chargeController);
 Display display(chargeController, networkManager, mqttController);

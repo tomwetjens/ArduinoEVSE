@@ -82,9 +82,10 @@ void ChargeController::openRelay()
     digitalWrite(PIN_AC_RELAY, LOW);
 }
 
-ChargeController::ChargeController(Pilot &pilot)
+ChargeController::ChargeController(Pilot &pilot, TempSensor &tempSensor)
 {
     this->pilot = &pilot;
+    this->tempSensor = &tempSensor;
 }
 
 void ChargeController::setup(ChargingSettings settings)
@@ -104,6 +105,9 @@ void ChargeController::setup(ChargingSettings settings)
 void ChargeController::loop()
 {
     this->updateVehicleState();
+
+    this->tempSensor->read();
+
     this->fallbackCurrentIfNeeded();
 }
 
@@ -163,6 +167,11 @@ State ChargeController::getState()
 VehicleState ChargeController::getVehicleState()
 {
     return this->vehicleState;
+}
+
+float ChargeController::getTemp()
+{
+    return this->tempSensor->getLastRead();
 }
 
 float ChargeController::getCurrentLimit()

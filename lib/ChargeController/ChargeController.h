@@ -31,17 +31,6 @@ enum State
 
 typedef void (*ChargeControllerEventHandler)();
 
-struct LoadBalancingSettings
-{
-  // Safe fallback (A) current when no current limit is set within timeout (for load balancing)
-  // If set to <6A, fallback will mean that charging will stop temporarily
-  uint8_t fallbackCurrent = 0;
-
-  // Timeout (milliseconds) after which charging will fall back to safe current, when current limit has not been received (for load balancing)
-  // If set to 0, no fallback will be performed
-  uint16_t currentLimitTimeout = 20000;
-};
-
 struct ChargingSettings
 {
   // Max current (A) that installed cabling can handle and must never be exceeded
@@ -49,8 +38,6 @@ struct ChargingSettings
 
   // Temperature (C) at which charger is considered overheated - will immediately stop charging and must be reset to charge again
   uint8_t overheatTemp = 70;
-
-  LoadBalancingSettings loadBalancing;
 };
 
 class ChargeController
@@ -62,13 +49,13 @@ private:
   TempSensor *tempSensor;
   VehicleState vehicleState;
   float currentLimit;
-  unsigned long currentLimitLastUpdated;
+  float _actualCurrent;
+  unsigned long _actualCurrentUpdated;
   unsigned long started;
   ChargeControllerEventHandler vehicleStateChange;
   ChargeControllerEventHandler stateChange;
   void updateVehicleState();
   void detectOverheat();
-  void fallbackCurrentIfNeeded();
   void applyCurrentLimit();
   void closeRelay();
   void openRelay();
@@ -85,9 +72,18 @@ public:
   State getState();
   VehicleState getVehicleState();
   unsigned long getElapsedTime();
+
+  const float &maxCurrent = this->settings.maxCurrent;
+
   float getCurrentLimit();
-  void setCurrentLimit(float amps);
+  void setCurrentLimit(float currentLimit);
+
+  const float &actualCurrent = _actualCurrent;
+  const unsigned long &actualCurrentUpdated = _actualCurrentUpdated;
+  void updateActualCurrent(float actualCurrent);
+
   Pilot *getPilot();
+
   float getTemp();
 
   // Event handlers

@@ -21,13 +21,17 @@
 #include <WiFiClient.h>
 #include <ArduinoMqttClient.h>
 
-#include "ChargeController.h"
+#include <ChargeController.h>
+#include <LoadBalancing.h>
+#include <MainsMeter.h>
 
-enum Command
+enum Message
 {
     StopChargingSession = 0,
     StartChargingSession = 1,
     SetCurrentLimit = 2,
+    ActualCurrent = 3,
+    MainsMeterValues = 4,
 };
 
 struct MqttSettings
@@ -44,6 +48,8 @@ class MqttController
 {
 private:
     ChargeController *chargeController;
+    LoadBalancing *loadBalancing;
+    MainsMeter *mainsMeter;
     MqttSettings settings;
     WiFiClient *wifiClient;
     MqttClient *mqttClient;
@@ -56,7 +62,7 @@ private:
     void processMessage(char *msg);
 
 public:
-    MqttController(ChargeController &chargeController);
+    MqttController(ChargeController &chargeController, LoadBalancing &loadBalancing, MainsMeter &mainsMeter);
 
     void setup(MqttSettings settings);
     void loop();

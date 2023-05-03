@@ -21,8 +21,7 @@
 #include <WiFiClient.h>
 
 #include <ArduinoMqttClient.h>
-
-#include "MqttController.h"
+#include <MqttController.h>
 
 #define MAX_MSG_LEN 50
 
@@ -83,48 +82,72 @@ void MqttController::onMessage(int size)
     }
 }
 
-void MqttController::processMessage(char *msg)
+void MqttController::processMessage(char *payload)
 {
     Serial.print("Message: ");
-    Serial.println(msg);
+    Serial.println(payload);
 
-    char *token = strtok(msg, ",");
+    char *token = strtok(payload, ",");
 
-    Command cmd = (Command)atoi(token);
+    Message message = (Message)atoi(token);
 
-    switch (cmd)
+    switch (message)
     {
     case StartChargingSession:
-        Serial.println("StartChargingSession command received");
+        Serial.println("StartChargingSession message received");
         this->chargeController->startCharging();
         this->sendUpdate();
         break;
 
     case StopChargingSession:
-        Serial.println("StopChargingSession command received");
+        Serial.println("StopChargingSession message received");
         this->chargeController->stopCharging();
         this->sendUpdate();
         break;
 
     case SetCurrentLimit:
-        Serial.println("SetCurrentLimit command received");
-
+        Serial.println("SetCurrentLimit message received");
         token = strtok(NULL, ",");
-        float amps = atof(token);
-
-        this->chargeController->setCurrentLimit(amps);
+        float currentLimit = atof(token);
+        this->loadBalancing->setCurrentLimit(currentLimit);
         this->sendUpdate();
+        break;
+
+    case ActualCurrent:
+        Serial.println("ActualCurrent message received");
+        token = strtok(NULL, ",");
+        float actualCurrent = atof(token);
+        chargeController->updateActualCurrent(actualCurrent);
+        break;
+
+    case MainsMeterValues:
+        Serial.println("MainsMeterValues message received");
+        token = strtok(NULL, ",");
+        float importCurrentL1 = atof(token);
+        token = strtok(NULL, ",");
+        float importCurrentL2 = atof(token);
+        token = strtok(NULL, ",");
+        float importCurrentL3 = atof(token);
+        token = strtok(NULL, ",");
+        float exportCurrentL1 = atof(token);
+        token = strtok(NULL, ",");
+        float exportCurrentL2 = atof(token);
+        token = strtok(NULL, ",");
+        float exportCurrentL3 = atof(token);
+        mainsMeter->updateValues({importCurrentL1, importCurrentL2, importCurrentL3}, {exportCurrentL1, exportCurrentL2, exportCurrentL3});
         break;
 
     default:
         Serial.print("Unknown message:");
-        Serial.println(msg);
+        Serial.println(payload);
     }
 }
 
-MqttController::MqttController(ChargeController &chargeController)
+MqttController::MqttController(ChargeController &chargeController, LoadBalancing &loadBalancing, MainsMeter &mainsMeter)
 {
     this->chargeController = &chargeController;
+    this->loadBalancing = &loadBalancing;
+    this->mainsMeter = &mainsMeter;
     this->wifiClient = new WiFiClient();
     this->mqttClient = new MqttClient(wifiClient);
     this->lastConnect = 0;
@@ -170,7 +193,7 @@ void MqttController::sendUpdate()
     float pilotVoltage = pilot->getVoltage();
     float pilotVoltageFraction = pilotVoltage - (int)pilotVoltage;
     int pilotVoltageDecimals = pilotVoltageFraction * 10;
-    
+
     float temp = this->chargeController->getTemp();
     float tempFraction = temp - (int)temp;
     int tempDecimals = tempFraction * 10;

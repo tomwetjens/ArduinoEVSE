@@ -67,25 +67,6 @@ void ChargeController::detectOverheat()
     }
 }
 
-void ChargeController::fallbackCurrentIfNeeded()
-{
-    // When fallback is enabled (timeout is configured)
-    if (this->settings.loadBalancing.currentLimitTimeout > 0)
-    {
-        // When current limit is outdated (timeout exceeded)
-        if (millis() - currentLimitLastUpdated >= this->settings.loadBalancing.currentLimitTimeout)
-        {
-            // Fall back to a safe charging current (for safety reasons)
-
-            // When not already at a safe current
-            if (currentLimit > this->settings.loadBalancing.fallbackCurrent)
-            {
-                Serial.println("Current limit timeout. Falling back to safe charging current");
-                setCurrentLimit(this->settings.loadBalancing.fallbackCurrent);
-            }
-        }
-    }
-}
 
 void ChargeController::closeRelay()
 {
@@ -112,7 +93,6 @@ void ChargeController::setup(ChargingSettings settings)
 
     this->settings = settings;
     this->currentLimit = this->settings.maxCurrent;
-    this->currentLimitLastUpdated = millis();
     this->vehicleState = VehicleNotConnected;
     this->state = Ready;
 }
@@ -121,7 +101,6 @@ void ChargeController::loop()
 {
     this->detectOverheat();
     this->updateVehicleState();
-    this->fallbackCurrentIfNeeded();
 }
 
 void ChargeController::startCharging()
@@ -205,13 +184,18 @@ void ChargeController::setCurrentLimit(float amps)
     }
 
     this->currentLimit = amps;
-    this->currentLimitLastUpdated = millis();
 
     Serial.print("Setting current limit to ");
     Serial.print(amps);
     Serial.println(" A");
 
     this->applyCurrentLimit();
+}
+
+void ChargeController::updateActualCurrent(float amps)
+{
+    this->_actualCurrent = amps;
+    this->_actualCurrentUpdated = millis();
 }
 
 void ChargeController::applyCurrentLimit()

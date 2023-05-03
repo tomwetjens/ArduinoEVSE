@@ -22,6 +22,8 @@
 #include "NetworkManager.h"
 #include "MqttController.h"
 #include <TempSensor.h>
+#include <LoadBalancing.h>
+#include <MainsMeter.h>
 
 #include "arduino_secrets.h"
 
@@ -31,8 +33,10 @@
 Pilot pilot;
 TempSensor tempSensor(PIN_A2);
 ChargeController chargeController(pilot, tempSensor);
+MainsMeter mainsMeter;
+LoadBalancing loadBalancing(chargeController, mainsMeter);
 NetworkManager networkManager;
-MqttController mqttController(chargeController);
+MqttController mqttController(chargeController, loadBalancing, mainsMeter);
 Display display(chargeController, networkManager, mqttController);
 
 void vehicleStateChanged()
@@ -82,6 +86,7 @@ void setup()
 
   display.setup();
   chargeController.setup({});
+  loadBalancing.setup({});
 
   struct WiFiSettings wifiSettings;
   strncpy(wifiSettings.ssid, WIFI_SSID, 33);
@@ -101,6 +106,7 @@ void setup()
 void loop()
 {
   chargeController.loop();
+  loadBalancing.loop();
   display.loop();
   networkManager.loop();
   mqttController.loop();

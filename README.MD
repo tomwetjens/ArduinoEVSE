@@ -109,4 +109,8 @@ Send a message on the `ArduinoEVSE/in` topic to do the following:
 
 * Stop Charging message: `0`
 
-* Set Current Limit message: `2,<CurrentLimit>` for example `2,16.0`
+* Set Current Limit message: `2,<CurrentLimit>` for example `2,16.0`. This can be used for external load balancing logic.
+
+* Report the actual charging current: `3,<ActualCurrent>` for example `3,15.9`. This is needed for the internal load balancing and/or smart charging logic and requires the charging current is measured somehow externally.
+
+* Report mains meter values: `4,<ImportCurrentL1>,<ImportCurrentL2>,<ImportCurrentL3>,<ExportCurrentL1>,<ExportCurrentL2>,<ExportCurrentL3>` for example `4,2.9,0.1,0.0,0.0,0.0,0.0`. This is needed for the internal load balancing and/or smart charging logic and requires an external kWh meter or reading it from the P1 port of a smart meter.

@@ -16,27 +16,30 @@
  */
 
 #include <Arduino.h>
-#include "megaAVR_PWM.h"
+#include <math.h>
 
 #include "Pilot.h"
 
 #define PILOT_FREQUENCY 1000 // 1 kHz
-#define PILOT_STANDBY_DUTY_CYCLE 99
 #define PIN_PILOT_PWM 10
 
 #define PIN_PILOT_IN_MIN_VOLTAGE 2.55 // @ 0V pilot, measured
 #define PIN_PILOT_IN_MAX_VOLTAGE 4.47 // @ 12V pilot, measured
 #define PIN_PILOT_IN PIN_A1
 
-#define USING_TIMERB true
-megaAVR_PWM *PWM_Instance = new megaAVR_PWM(PIN_PILOT_PWM, PILOT_FREQUENCY, 0);
+#ifdef ARDUINO_AVR_UNO_WIFI_REV2
+    #include "megaAVR_PWM.h"
+    
+    #define USING_TIMERB true
+    megaAVR_PWM *PWM_Instance = new megaAVR_PWM(PIN_PILOT_PWM, PILOT_FREQUENCY, 0);
+#endif
 
-int analogReadMax(pin_size_t pinNumber, int count)
+int analogReadMax(uint8_t pinNumber, uint8_t count)
 {
     long result = 0;
     for (int i = 0; i < count; i++)
     {
-        result = max(result, analogRead(pinNumber));
+        result = fmax(result, analogRead(pinNumber));
     }
     return result;
 }
@@ -44,7 +47,7 @@ int analogReadMax(pin_size_t pinNumber, int count)
 void Pilot::standby()
 {
     Serial.println("Setting pilot standby");
-    digitalWrite(PIN_PILOT_PWM, HIGH);
+    digitalWrite(PIN_PILOT_PWM, 1);
 }
 
 void Pilot::currentLimit(float amps)
@@ -68,7 +71,10 @@ void Pilot::currentLimit(float amps)
 
     Serial.print("Setting pilot duty cycle: ");
     Serial.println(dutyCycle);
-    PWM_Instance->setPWM(PIN_PILOT_PWM, PILOT_FREQUENCY, dutyCycle);
+
+    #ifdef ARDUINO_AVR_UNO_WIFI_REV2
+        PWM_Instance->setPWM(PIN_PILOT_PWM, PILOT_FREQUENCY, dutyCycle);
+    #endif
 }
 
 float Pilot::getVoltage()
@@ -86,7 +92,7 @@ float Pilot::readPin()
 
 VehicleState Pilot::read()
 {
-    float voltage = this->readPin();
+    float voltage = floor(this->readPin());
 
     if (voltage >= 11) // 12V +/-1V
     {
@@ -104,7 +110,7 @@ VehicleState Pilot::read()
     {
         return VehicleReadyVentilationRequired;
     }
-    else if (voltage >= 0) // 0V
+    else if (voltage > 0) // 0V
     {
         return VehicleNoPower;
     }

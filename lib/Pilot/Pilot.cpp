@@ -1,17 +1,17 @@
-/* 
+/*
  * This file is part of the ArduinoEVSE (https://github.com/tomwetjens/ArduinoEVSE).
  * Copyright (c) 2023 Tom Wetjens.
- * 
- * This program is free software: you can redistribute it and/or modify  
- * it under the terms of the GNU General Public License as published by  
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3.
  *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License 
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -28,10 +28,10 @@
 #define PIN_PILOT_IN PIN_A1
 
 #ifdef ARDUINO_AVR_UNO_WIFI_REV2
-    #include "megaAVR_PWM.h"
-    
-    #define USING_TIMERB true
-    megaAVR_PWM *PWM_Instance = new megaAVR_PWM(PIN_PILOT_PWM, PILOT_FREQUENCY, 0);
+#include "megaAVR_PWM.h"
+
+#define USING_TIMERB true
+megaAVR_PWM *PWM_Instance = new megaAVR_PWM(PIN_PILOT_PWM, PILOT_FREQUENCY, 0);
 #endif
 
 int analogReadMax(uint8_t pinNumber, uint8_t count)
@@ -72,9 +72,9 @@ void Pilot::currentLimit(float amps)
     Serial.print("Setting pilot duty cycle: ");
     Serial.println(dutyCycle);
 
-    #ifdef ARDUINO_AVR_UNO_WIFI_REV2
-        PWM_Instance->setPWM(PIN_PILOT_PWM, PILOT_FREQUENCY, dutyCycle);
-    #endif
+#ifdef ARDUINO_AVR_UNO_WIFI_REV2
+    PWM_Instance->setPWM(PIN_PILOT_PWM, PILOT_FREQUENCY, dutyCycle);
+#endif
 }
 
 float Pilot::getVoltage()
@@ -84,9 +84,9 @@ float Pilot::getVoltage()
 
 float Pilot::readPin()
 {
-    int pinValue = analogReadMax(PIN_PILOT_IN, 10); // 0-1024
-    float pinVoltage = (pinValue / 1023.0) * 5.0;   // 0-5V
-    this->voltage  = ((pinVoltage - PIN_PILOT_IN_MIN_VOLTAGE) / (PIN_PILOT_IN_MAX_VOLTAGE - PIN_PILOT_IN_MIN_VOLTAGE)) * 12.0; // 0-12V
+    int pinValue = analogReadMax(PIN_PILOT_IN, 10);                                                                           // 0-1024
+    float pinVoltage = (pinValue / 1023.0) * 5.0;                                                                             // 0-5V
+    this->voltage = ((pinVoltage - PIN_PILOT_IN_MIN_VOLTAGE) / (PIN_PILOT_IN_MAX_VOLTAGE - PIN_PILOT_IN_MIN_VOLTAGE)) * 12.0; // 0-12V
     return this->voltage;
 }
 
@@ -125,18 +125,25 @@ void vehicleStateToText(VehicleState vehicleState, char *buffer)
     switch (vehicleState)
     {
     case VehicleNotConnected:
-        buffer = "Not connected";
+        strcpy(buffer, "Not connected");
+        break;
     case VehicleConnected:
-        buffer = "Connected, not ready";
+        strcpy(buffer, "Connected, not ready");
+        break;
     case VehicleReady:
-        buffer = "Ready";
+        strcpy(buffer, "Ready");
+        break;
     case VehicleReadyVentilationRequired:
-        buffer = "Ready, ventilation required";
+        strcpy(buffer, "Ready, ventilation required");
+        break;
     case VehicleNoPower:
-        buffer = "No power";
+        strcpy(buffer, "No power");
+        break;
     case VehicleError:
-        buffer = "Error";
+        strcpy(buffer, "Error");
+        break;
     default:
-        buffer = "Unknown";
+        strcpy(buffer, "Unknown");
+        break;
     }
 }

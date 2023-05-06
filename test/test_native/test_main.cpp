@@ -123,6 +123,29 @@ void test_pilot_currentLimit()
     // TODO: Add test cases
 }
 
+void test_pilot_vehicleStateToText()
+{
+    char actual[50];
+
+    vehicleStateToText(VehicleNotConnected, actual);
+    TEST_ASSERT_EQUAL_STRING("Not connected", actual);
+    
+    vehicleStateToText(VehicleConnected, actual);
+    TEST_ASSERT_EQUAL_STRING("Connected, not ready", actual);
+    
+    vehicleStateToText(VehicleReady, actual);
+    TEST_ASSERT_EQUAL_STRING("Ready", actual);
+    
+    vehicleStateToText(VehicleReadyVentilationRequired, actual);
+    TEST_ASSERT_EQUAL_STRING("Ready, ventilation required", actual);
+    
+    vehicleStateToText(VehicleNoPower, actual);
+    TEST_ASSERT_EQUAL_STRING("No power", actual);
+    
+    vehicleStateToText(VehicleError, actual);
+    TEST_ASSERT_EQUAL_STRING("Error", actual);
+}
+
 void test_loadbalancing()
 {
     // When(Method(ArduinoFake(), millis)).AlwaysReturn(0);
@@ -138,6 +161,8 @@ int main(int argc, char **argv)
     RUN_TEST(test_pilot_read);
     RUN_TEST(test_pilot_standby);
     RUN_TEST(test_pilot_currentLimit);
+    RUN_TEST(test_pilot_vehicleStateToText);
+
     RUN_TEST(test_loadbalancing);
 
     UNITY_END();

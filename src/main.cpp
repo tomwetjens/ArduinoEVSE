@@ -16,6 +16,7 @@
  */
 
 #include <Arduino.h>
+#include <WiFiClient.h>
 
 #include "Display.h"
 #include "ChargeController.h"
@@ -36,7 +37,8 @@ ChargeController chargeController(pilot, tempSensor);
 MainsMeter mainsMeter;
 LoadBalancing loadBalancing(chargeController, mainsMeter);
 NetworkManager networkManager;
-MqttController mqttController(chargeController, loadBalancing, mainsMeter);
+WiFiClient wiFiClient;
+MqttController mqttController(wiFiClient, chargeController, loadBalancing, mainsMeter);
 Display display(chargeController, networkManager, mqttController);
 
 void vehicleStateChanged()

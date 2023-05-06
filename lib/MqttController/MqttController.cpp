@@ -17,9 +17,6 @@
 
 #include <Arduino.h>
 
-#include <WiFiNINA.h>
-#include <WiFiClient.h>
-
 #include <ArduinoMqttClient.h>
 #include <MqttController.h>
 
@@ -52,7 +49,7 @@ void MqttController::connect()
 
 void MqttController::reconnectAutomatically()
 {
-    if (WiFi.status() == WL_CONNECTED && millis() - lastConnect >= this->settings.reconnectInterval)
+    if (millis() - lastConnect >= this->settings.reconnectInterval)
     {
         this->connect();
     }
@@ -143,13 +140,12 @@ void MqttController::processMessage(char *payload)
     }
 }
 
-MqttController::MqttController(ChargeController &chargeController, LoadBalancing &loadBalancing, MainsMeter &mainsMeter)
+MqttController::MqttController(Client &client, ChargeController &chargeController, LoadBalancing &loadBalancing, MainsMeter &mainsMeter)
 {
     this->chargeController = &chargeController;
     this->loadBalancing = &loadBalancing;
     this->mainsMeter = &mainsMeter;
-    this->wifiClient = new WiFiClient();
-    this->mqttClient = new MqttClient(wifiClient);
+    this->mqttClient = new MqttClient(client);
     this->lastConnect = 0;
     this->lastUpdateSent = 0;
 }
@@ -161,7 +157,7 @@ void MqttController::setup(MqttSettings settings)
 
 void MqttController::loop()
 {
-    if (!this->mqttClient->connected() || WiFi.status() != WL_CONNECTED)
+    if (!this->mqttClient->connected())
     {
         this->reconnectAutomatically();
         return;

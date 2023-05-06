@@ -18,7 +18,6 @@
 #ifndef MQTTCONTROLLER_H_
 #define MQTTCONTROLLER_H_ _
 
-#include <WiFiClient.h>
 #include <ArduinoMqttClient.h>
 
 #include <ChargeController.h>
@@ -51,7 +50,6 @@ private:
     LoadBalancing *loadBalancing;
     MainsMeter *mainsMeter;
     MqttSettings settings;
-    WiFiClient *wifiClient;
     MqttClient *mqttClient;
     unsigned long lastConnect = 0;
     unsigned long lastUpdateSent = 0;
@@ -62,7 +60,7 @@ private:
     void processMessage(char *msg);
 
 public:
-    MqttController(ChargeController &chargeController, LoadBalancing &loadBalancing, MainsMeter &mainsMeter);
+    MqttController(Client &client, ChargeController &chargeController, LoadBalancing &loadBalancing, MainsMeter &mainsMeter);
 
     void setup(MqttSettings settings);
     void loop();

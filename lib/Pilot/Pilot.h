@@ -39,16 +39,27 @@ void vehicleStateToText(VehicleState vehicleState, char* buffer);
 /**
  * Type 2 "Control Pilot" according to IEC 62196 standard.
  */
-class Pilot
+class IPilot
+{
+public:
+  virtual VehicleState read() = 0;
+  virtual void standby() = 0;
+  virtual void currentLimit(float amps) = 0;
+};
+
+/**
+ * Type 2 "Control Pilot" according to IEC 62196 standard.
+ */
+class Pilot : public IPilot
 {
 private:
   float voltage;
   float readPin();
 
 public:
-  VehicleState read();
-  void standby();
-  void currentLimit(float amps);
+  VehicleState read() override;
+  void standby() override;
+  void currentLimit(float amps) override;
   float getVoltage();
 };
 

@@ -88,6 +88,11 @@ pio run -t upload
 
 After this is successful you can disconnect the Arduino and it will run the firmware on its own.
 
+To run all the tests:
+```
+pio test -e native
+```
+
 ## MQTT
 
 The Arduino EVSE will not start charging by itself. It can be controlled through MQTT.

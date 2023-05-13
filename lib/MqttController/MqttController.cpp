@@ -140,8 +140,13 @@ void MqttController::processMessage(char *payload)
     }
 }
 
-MqttController::MqttController(Client &client, ChargeController &chargeController, LoadBalancing &loadBalancing, MainsMeter &mainsMeter)
+MqttController::MqttController(Client &client,
+                               Pilot &pilot,
+                               ChargeController &chargeController,
+                               LoadBalancing &loadBalancing,
+                               MainsMeter &mainsMeter)
 {
+    this->pilot = &pilot;
     this->chargeController = &chargeController;
     this->loadBalancing = &loadBalancing;
     this->mainsMeter = &mainsMeter;
@@ -176,28 +181,27 @@ void MqttController::loop()
 
 void MqttController::sendUpdate()
 {
-    if (!this->mqttClient->connected())
+    if (!mqttClient->connected())
     {
         return;
     }
 
-    float currentLimit = this->chargeController->getCurrentLimit();
+    float currentLimit = chargeController->getCurrentLimit();
     float currentLimitFraction = currentLimit - (int)currentLimit;
     int currentLimitDecimals = currentLimitFraction * 10;
 
-    Pilot *pilot = this->chargeController->getPilot();
     float pilotVoltage = pilot->getVoltage();
     float pilotVoltageFraction = pilotVoltage - (int)pilotVoltage;
     int pilotVoltageDecimals = pilotVoltageFraction * 10;
 
-    float temp = this->chargeController->getTemp();
+    float temp = chargeController->getTemp();
     float tempFraction = temp - (int)temp;
     int tempDecimals = tempFraction * 10;
 
     char msg[100];
     sprintf(msg, "%d,%d,%d.%01d,%d.%01d,%d.%01d",
-            this->chargeController->getState(),
-            this->chargeController->getVehicleState(),
+            chargeController->getState(),
+            chargeController->getVehicleState(),
             (int)currentLimit,
             currentLimitDecimals,
             (int)pilotVoltage,
@@ -206,15 +210,15 @@ void MqttController::sendUpdate()
             tempDecimals);
 
     Serial.print("Sending message to ");
-    Serial.print(this->settings.outTopic);
+    Serial.print(settings.outTopic);
     Serial.print(": ");
     Serial.println(msg);
 
-    this->mqttClient->beginMessage(this->settings.outTopic);
-    this->mqttClient->print(msg);
-    this->mqttClient->endMessage();
+    mqttClient->beginMessage(settings.outTopic);
+    mqttClient->print(msg);
+    mqttClient->endMessage();
 
-    this->lastUpdateSent = millis();
+    lastUpdateSent = millis();
 }
 
 bool MqttController::isConnected()

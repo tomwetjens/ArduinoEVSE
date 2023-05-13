@@ -46,6 +46,7 @@ struct MqttSettings
 class MqttController
 {
 private:
+    Pilot *pilot;
     ChargeController *chargeController;
     LoadBalancing *loadBalancing;
     MainsMeter *mainsMeter;
@@ -60,7 +61,7 @@ private:
     void processMessage(char *msg);
 
 public:
-    MqttController(Client &client, ChargeController &chargeController, LoadBalancing &loadBalancing, MainsMeter &mainsMeter);
+    MqttController(Client &client, Pilot &pilot, ChargeController &chargeController, LoadBalancing &loadBalancing, MainsMeter &mainsMeter);
 
     void setup(MqttSettings settings);
     void loop();

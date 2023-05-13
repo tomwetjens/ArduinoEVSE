@@ -26,15 +26,16 @@
 struct LoadBalancingSettings
 {
     // Max mains current
+    // If set to 0, no load balancing will be performed
     uint8_t maxMainsCurrent = 25;
-
-    // Safe fallback (A) current when no current limit is set within timeout (for load balancing)
-    // If set to <6A, fallback will mean that charging will stop temporarily
-    uint8_t fallbackCurrent = 0;
 
     // Timeout (milliseconds) after which charging will fall back to safe current, when a current limit could not been calculated (or was not received)
     // If set to 0, no fallback will be performed
     uint16_t fallbackTimeout = 20000;
+
+    // Safe fallback (A) current when no current limit is set within timeout (for load balancing)
+    // If set to <6A, fallback will mean that charging will stop temporarily
+    uint8_t fallbackCurrent = 0;
 
     // Timeout (milliseconds) after which meter values are considered outdated and cannot be used for load balancing
     uint16_t meterTimeout = 10000;
@@ -48,9 +49,11 @@ private:
     MainsMeter *mainsMeter;
     unsigned long lastChecked;
     unsigned long currentLimitLastUpdated;
-    float calculateCurrentLimit();
+    float calculateMaxImportCurrent();
     void balanceLoad();
-    void fallbackCurrentIfNeeded();
+    bool fallbackEnabled();
+    void fallbackCurrentIfOutdated();
+    void fallbackCurrent();
 public:
     LoadBalancing(ChargeController &chargeController, MainsMeter &mainsMeter);
     void setup(LoadBalancingSettings settings);

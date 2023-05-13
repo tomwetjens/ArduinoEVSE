@@ -38,7 +38,7 @@ MainsMeter mainsMeter;
 LoadBalancing loadBalancing(chargeController, mainsMeter);
 NetworkManager networkManager;
 WiFiClient wiFiClient;
-MqttController mqttController(wiFiClient, chargeController, loadBalancing, mainsMeter);
+MqttController mqttController(wiFiClient, pilot, chargeController, loadBalancing, mainsMeter);
 Display display(chargeController, networkManager, mqttController);
 
 void vehicleStateChanged()
@@ -87,6 +87,7 @@ void setup()
   Serial.println("ArduinoEVSE");
 
   display.setup();
+  mainsMeter.setup();
   chargeController.setup({});
   loadBalancing.setup({});
 

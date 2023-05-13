@@ -35,8 +35,6 @@ float voltageDivider(float vin, float vout, float r2) {
     return r2 * (vin / vout - 1);
 }
 
-unsigned long lastRead = 0;
-
 TempSensor::TempSensor(uint8_t pinNumber)
 {
     this->pinNumber = pinNumber;
@@ -47,12 +45,5 @@ float TempSensor::read()
     float pinVoltage = VREF * (analogRead(this->pinNumber) / 1023.0);
     float resistance = voltageDivider(VIN, pinVoltage, R2);
     float tempKelvin = steinhartHart(A, B, C, resistance);
-    this->lastReadTemp = kelvinToCelcius(tempKelvin);
-    
-    return this->lastReadTemp;
-}
-
-float TempSensor::getLastRead()
-{
-    return this->lastReadTemp;
+    return kelvinToCelcius(tempKelvin);
 }

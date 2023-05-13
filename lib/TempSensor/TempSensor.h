@@ -20,17 +20,21 @@
 
 #include <Arduino.h>
 
-class TempSensor
+class ITempSensor
+{
+public:
+  virtual float read() = 0;
+};
+
+class TempSensor : public ITempSensor
 {
 private:
   uint8_t pinNumber;
-  float lastReadTemp;
 
 public:
   TempSensor(uint8_t pinNumber);
-
+  
   float read();
-  float getLastRead();
 };
 
 #endif // TEMP_SENSOR_H_

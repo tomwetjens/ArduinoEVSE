@@ -33,7 +33,7 @@ typedef void (*ChargeControllerEventHandler)();
 
 struct ChargingSettings
 {
-  // Max current (A) that installed cabling can handle and must never be exceeded
+  // Max current (A) that must never be exceeded
   uint8_t maxCurrent = 16;
 
   // Temperature (C) at which charger is considered overheated - will immediately stop charging and must be reset to charge again
@@ -45,8 +45,8 @@ class ChargeController
 private:
   ChargingSettings settings;
   State state;
-  Pilot *pilot;
-  TempSensor *tempSensor;
+  IPilot *pilot;
+  ITempSensor *tempSensor;
   VehicleState vehicleState;
   float currentLimit;
   float _actualCurrent;
@@ -61,7 +61,7 @@ private:
   void openRelay();
 
 public:
-  ChargeController(Pilot &pilot, TempSensor &tempSensor);
+  ChargeController(IPilot &pilot, ITempSensor &tempSensor);
 
   void setup(ChargingSettings settings);
   void loop();
@@ -73,16 +73,14 @@ public:
   VehicleState getVehicleState();
   unsigned long getElapsedTime();
 
-  const float &maxCurrent = this->settings.maxCurrent;
+  const float maxCurrent() { return settings.maxCurrent; }
 
   float getCurrentLimit();
   void setCurrentLimit(float currentLimit);
 
-  const float &actualCurrent = _actualCurrent;
-  const unsigned long &actualCurrentUpdated = _actualCurrentUpdated;
+  const float actualCurrent() { return _actualCurrent; }
+  const unsigned long actualCurrentUpdated() { return _actualCurrentUpdated; }
   void updateActualCurrent(float actualCurrent);
-
-  Pilot *getPilot();
 
   float getTemp();
 

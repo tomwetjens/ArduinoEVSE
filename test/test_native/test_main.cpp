@@ -9,11 +9,42 @@ using namespace fakeit;
 #include <MainsMeter.h>
 #include <LoadBalancing.h>
 
+class PilotFake : public IPilot
+{
+private:
+    VehicleState _vehicleState = VehicleNotConnected;
+    float _currentLimit = -1;
+
+public:
+    VehicleState read() override { return this->_vehicleState; }
+    void standby() override { this->_currentLimit = 0; }
+    void currentLimit(float amps) override { this->_currentLimit = amps; };
+    void set(VehicleState vehicleState) { this->_vehicleState = vehicleState; }
+    bool isStandby() { return this->_currentLimit = 0; }
+    float getCurrentLimit() { return this->_currentLimit; }
+};
+
+class TempSensorFake : public ITempSensor
+{
+private:
+    float _temp = 20.0f;
+
+public:
+    float read() override { return this->_temp; }
+    void set(float temp) { this->_temp = temp; }
+};
+
 Pilot pilot;
-// TempSensor tempSensor(PIN_A2);
-// ChargeController chargeController(pilot, tempSensor);
-// MainsMeter mainsMeter;
-// LoadBalancing loadBalancing(chargeController, mainsMeter);
+PilotFake pilotFake;
+
+TempSensor tempSensor(PIN_A2);
+TempSensorFake tempSensorFake;
+
+ChargeController chargeController(pilotFake, tempSensorFake);
+
+MainsMeter mainsMeter;
+
+LoadBalancing loadBalancing(chargeController, mainsMeter);
 
 void setUp(void)
 {
@@ -36,7 +67,7 @@ void setUp(void)
     // When(OverloadedMethod(ArduinoFake(Serial), print, size_t(const Printable &))).AlwaysReturn();
 
     // When(OverloadedMethod(ArduinoFake(Serial), println, size_t(const __FlashStringHelper *))).AlwaysReturn();
-    // When(OverloadedMethod(ArduinoFake(Serial), println, size_t(const String &s))).AlwaysReturn();
+    When(OverloadedMethod(ArduinoFake(Serial), println, size_t(const String &s))).AlwaysReturn();
     When(OverloadedMethod(ArduinoFake(Serial), println, size_t(const char[]))).AlwaysReturn();
     // When(OverloadedMethod(ArduinoFake(Serial), println, size_t(char))).AlwaysReturn();
     // When(OverloadedMethod(ArduinoFake(Serial), println, size_t(unsigned char, int))).AlwaysReturn();
@@ -129,30 +160,106 @@ void test_pilot_vehicleStateToText()
 
     vehicleStateToText(VehicleNotConnected, actual);
     TEST_ASSERT_EQUAL_STRING("Not connected", actual);
-    
+
     vehicleStateToText(VehicleConnected, actual);
     TEST_ASSERT_EQUAL_STRING("Connected, not ready", actual);
-    
+
     vehicleStateToText(VehicleReady, actual);
     TEST_ASSERT_EQUAL_STRING("Ready", actual);
-    
+
     vehicleStateToText(VehicleReadyVentilationRequired, actual);
     TEST_ASSERT_EQUAL_STRING("Ready, ventilation required", actual);
-    
+
     vehicleStateToText(VehicleNoPower, actual);
     TEST_ASSERT_EQUAL_STRING("No power", actual);
-    
+
     vehicleStateToText(VehicleError, actual);
     TEST_ASSERT_EQUAL_STRING("Error", actual);
 }
 
+void test_loadbalancing_initially_safe_fallback_current()
+{
+    // Given
+    When(Method(ArduinoFake(), millis)).AlwaysReturn(0);
+
+    LoadBalancingSettings loadBalancingSettings;
+    loadBalancingSettings.maxMainsCurrent = 25.0;
+    loadBalancingSettings.fallbackCurrent = 6.0;
+    loadBalancingSettings.fallbackTimeout = 20000;
+    loadBalancing.setup(loadBalancingSettings);
+
+    ChargingSettings chargingSettings;
+    chargingSettings.maxCurrent = 16;
+    chargeController.setup(chargingSettings);
+    // Actual charging current has not been updated yet
+
+    mainsMeter.setup();
+    // Mains meter values have not been updated yet    
+
+    // When
+    loadBalancing.loop();
+
+    // Then
+    TEST_ASSERT_EQUAL_FLOAT(6.0, chargeController.getCurrentLimit());
+}
+
+void test_loadbalancing_case(float mainsImportCurrent, float mainsExportCurrent, float actualChargingCurrent, float expectedCurrentLimit, char *message)
+{
+    // Given
+    When(Method(ArduinoFake(), millis)).AlwaysReturn(0);
+
+    LoadBalancingSettings loadBalancingSettings;
+    loadBalancingSettings.maxMainsCurrent = 25.0;
+    loadBalancingSettings.fallbackCurrent = 6.0;
+    loadBalancingSettings.fallbackTimeout = 20000;
+    loadBalancing.setup(loadBalancingSettings);
+
+    ChargingSettings chargingSettings;
+    chargingSettings.maxCurrent = 16;
+    chargeController.setup(chargingSettings);
+
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(16, chargeController.maxCurrent(), "Charging max current"); // Sanity check
+    
+    // When
+    mainsMeter.updateValues({mainsImportCurrent, 0, 0}, {mainsExportCurrent, 0, 0});
+    chargeController.updateActualCurrent(actualChargingCurrent);
+
+    loadBalancing.loop();
+
+    // Then
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(expectedCurrentLimit, chargeController.getCurrentLimit(), message);
+}
+
 void test_loadbalancing()
 {
-    // When(Method(ArduinoFake(), millis)).AlwaysReturn(0);
-
-    // loadBalancing.setup({});
-    // loadBalancing.loop();
+    test_loadbalancing_case(0.0, 0.0, 0.0, 16.0, "Not charging, no excess, no house load");
+    test_loadbalancing_case(1.4, 0.0, 0.0, 16.0, "Not charging, no excess, house load");
+    test_loadbalancing_case(0.0, 1.4, 0.0, 16.0, "Not charging, excess available");
+    test_loadbalancing_case(0.0, 1.4, 15.9, 16.0, "Fully charging from excess, with still excess left");
+    test_loadbalancing_case(17.6, 0.0, 15.9, 16.0, "House load, but not at mains max current yet");
+    test_loadbalancing_case(25.0, 0.0, 15.9, 15.9, "At mains max current");
+    test_loadbalancing_case(25.0, 0.0, 16.0, 16.0, "At mains max current and at max charging current");
+    test_loadbalancing_case(28.0, 0.0, 15.9, 12.9, "Mains max current exceeded");
 }
+
+void test_loadbalancing_mains_meter_values_outdated()
+{
+    // TODO
+}
+
+void test_loadbalancing_actual_current_outdated()
+{
+    // TODO
+}
+
+void test_loadbalancing_outdated_but_current_limit_set_externally()
+{
+    // TODO
+    // Given all meter values are outdated
+    // When load balancing
+    // Then keep externally set current limit (don't fall back)
+}
+
 
 int main(int argc, char **argv)
 {
@@ -163,7 +270,11 @@ int main(int argc, char **argv)
     RUN_TEST(test_pilot_currentLimit);
     RUN_TEST(test_pilot_vehicleStateToText);
 
+    RUN_TEST(test_loadbalancing_initially_safe_fallback_current);
     RUN_TEST(test_loadbalancing);
+    RUN_TEST(test_loadbalancing_mains_meter_values_outdated);
+    RUN_TEST(test_loadbalancing_actual_current_outdated);
+    RUN_TEST(test_loadbalancing_outdated_but_current_limit_set_externally);
 
     UNITY_END();
 }

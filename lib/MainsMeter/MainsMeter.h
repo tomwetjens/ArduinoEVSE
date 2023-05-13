@@ -18,7 +18,8 @@
 #ifndef MAINS_METER_H_
 #define MAINS_METER_H_ _
 
-struct ThreePhases {
+struct ThreePhases
+{
   float l1;
   float l2;
   float l3;
@@ -27,15 +28,18 @@ struct ThreePhases {
 class MainsMeter
 {
 private:
-    ThreePhases _importCurrent;
-    ThreePhases _exportCurrent;
-    unsigned long _updated;
-public:
-    const ThreePhases& importCurrent = _importCurrent;
-    const ThreePhases& exportCurrent = _exportCurrent;
-    const unsigned long& updated = _updated;
+  ThreePhases _importCurrent;
+  ThreePhases _exportCurrent;
+  unsigned long _updated;
 
-    void updateValues(ThreePhases importCurrent, ThreePhases exportCurrent);
+public:
+  void setup();
+  
+  const ThreePhases importCurrent() { return _importCurrent; }
+  const ThreePhases exportCurrent() { return _exportCurrent; }
+  const unsigned long updated() { return _updated; }
+
+  void updateValues(ThreePhases importCurrent, ThreePhases exportCurrent);
 };
 
 #endif // MAINS_METER_H_

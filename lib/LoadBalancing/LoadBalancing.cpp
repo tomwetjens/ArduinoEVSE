@@ -44,7 +44,6 @@ void LoadBalancing::balanceLoad()
         {
             float maxImportCurrent = calculateMaxImportCurrent();
 
-            // TODO: Increasing the charging current limit should be debounced to prevent too much fluctuations and/or relay switching (decreasing should be immediate, for safety)
             setCurrentLimit(maxImportCurrent);
         }
 
@@ -109,6 +108,7 @@ void LoadBalancing::loop()
 
 void LoadBalancing::setCurrentLimit(float amps)
 {
+    // TODO: Increasing the charging current limit should be smoothed to prevent too much relay switching (decreasing should be immediate, for safety)
     chargeController->setCurrentLimit(amps);
     currentLimitLastUpdated = millis();
 }

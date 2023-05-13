@@ -20,9 +20,11 @@
 
 void MainsMeter::setup()
 {
+    _importCurrent = {INT16_MAX, INT16_MAX, INT16_MAX}; // Some nonsense value to indicate it is unknown, 'safe' when it's used anyway
+    _exportCurrent = {0, 0, 0};
+
     auto now = millis();
-    // Pretend it was 'infinitely' long ago
-    _updated = now - UINT64_MAX;
+    _updated = now - UINT64_MAX; // Pretend it was 'infinitely' long ago
 }
 
 void MainsMeter::updateValues(ThreePhases importCurrent, ThreePhases exportCurrent)

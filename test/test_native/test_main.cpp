@@ -194,7 +194,7 @@ void test_loadbalancing_initially_safe_fallback_current()
     // Actual charging current has not been updated yet
 
     mainsMeter.setup();
-    // Mains meter values have not been updated yet    
+    // Mains meter values have not been updated yet
 
     // When
     loadBalancing.loop();
@@ -206,8 +206,6 @@ void test_loadbalancing_initially_safe_fallback_current()
 void test_loadbalancing_case(float mainsImportCurrent, float mainsExportCurrent, float actualChargingCurrent, float expectedCurrentLimit, char *message)
 {
     // Given
-    When(Method(ArduinoFake(), millis)).AlwaysReturn(0);
-
     LoadBalancingSettings loadBalancingSettings;
     loadBalancingSettings.maxMainsCurrent = 25.0;
     loadBalancingSettings.fallbackCurrent = 6.0;
@@ -219,7 +217,7 @@ void test_loadbalancing_case(float mainsImportCurrent, float mainsExportCurrent,
     chargeController.setup(chargingSettings);
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(16, chargeController.maxCurrent(), "Charging max current"); // Sanity check
-    
+
     // When
     mainsMeter.updateValues({mainsImportCurrent, 0, 0}, {mainsExportCurrent, 0, 0});
     chargeController.updateActualCurrent(actualChargingCurrent);
@@ -232,6 +230,9 @@ void test_loadbalancing_case(float mainsImportCurrent, float mainsExportCurrent,
 
 void test_loadbalancing()
 {
+    // Given
+    When(Method(ArduinoFake(), millis)).Return(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50);
+
     test_loadbalancing_case(0.0, 0.0, 0.0, 16.0, "Not charging, no excess, no house load");
     test_loadbalancing_case(1.4, 0.0, 0.0, 16.0, "Not charging, no excess, house load");
     test_loadbalancing_case(0.0, 1.4, 0.0, 16.0, "Not charging, excess available");
@@ -242,24 +243,30 @@ void test_loadbalancing()
     test_loadbalancing_case(28.0, 0.0, 15.9, 12.9, "Mains max current exceeded");
 }
 
-void test_loadbalancing_mains_meter_values_outdated()
+void test_loadbalancing_current_limit_determined_externally()
 {
-    // TODO
-}
+    // Given
+    When(Method(ArduinoFake(), millis)).Return(0, 0, 1, 2, 3, 4, 5);
 
-void test_loadbalancing_actual_current_outdated()
-{
-    // TODO
-}
+    LoadBalancingSettings loadBalancingSettings;
+    loadBalancingSettings.maxMainsCurrent = 25.0;
+    loadBalancingSettings.fallbackCurrent = 6.0;
+    loadBalancingSettings.fallbackTimeout = 20000;
+    loadBalancing.setup(loadBalancingSettings);
 
-void test_loadbalancing_outdated_but_current_limit_set_externally()
-{
-    // TODO
-    // Given all meter values are outdated
-    // When load balancing
-    // Then keep externally set current limit (don't fall back)
-}
+    ChargingSettings chargingSettings;
+    chargingSettings.maxCurrent = 16;
+    chargeController.setup(chargingSettings);
 
+    mainsMeter.setup();
+
+    // When
+    loadBalancing.setCurrentLimit(10.0);
+    loadBalancing.loop();
+
+    // Then
+    TEST_ASSERT_EQUAL_FLOAT(10.0, chargeController.getCurrentLimit());
+}
 
 int main(int argc, char **argv)
 {
@@ -272,9 +279,7 @@ int main(int argc, char **argv)
 
     RUN_TEST(test_loadbalancing_initially_safe_fallback_current);
     RUN_TEST(test_loadbalancing);
-    RUN_TEST(test_loadbalancing_mains_meter_values_outdated);
-    RUN_TEST(test_loadbalancing_actual_current_outdated);
-    RUN_TEST(test_loadbalancing_outdated_but_current_limit_set_externally);
+    RUN_TEST(test_loadbalancing_current_limit_determined_externally);
 
     UNITY_END();
 }

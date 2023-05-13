@@ -40,6 +40,13 @@ struct ChargingSettings
   uint8_t overheatTemp = 70;
 };
 
+struct ActualCurrent
+{
+  float l1;
+  float l2;
+  float l3;
+};
+
 class ChargeController
 {
 private:
@@ -49,7 +56,7 @@ private:
   ITempSensor *tempSensor;
   VehicleState vehicleState;
   float currentLimit;
-  float _actualCurrent;
+  ActualCurrent _actualCurrent;
   unsigned long _actualCurrentUpdated;
   unsigned long started;
   ChargeControllerEventHandler vehicleStateChange;
@@ -78,9 +85,9 @@ public:
   float getCurrentLimit();
   void setCurrentLimit(float currentLimit);
 
-  const float actualCurrent() { return _actualCurrent; }
+  const ActualCurrent actualCurrent() { return _actualCurrent; }
   const unsigned long actualCurrentUpdated() { return _actualCurrentUpdated; }
-  void updateActualCurrent(float actualCurrent);
+  void updateActualCurrent(ActualCurrent actualCurrent);
 
   float getTemp();
 

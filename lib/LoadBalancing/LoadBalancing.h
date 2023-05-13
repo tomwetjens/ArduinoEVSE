@@ -29,7 +29,7 @@ struct LoadBalancingSettings
     // If set to 0, no load balancing will be performed
     uint8_t maxMainsCurrent = 25;
 
-    // Timeout (milliseconds) after which charging will fall back to safe current, when a current limit could not been calculated (or was not received)
+    // Timeout (milliseconds) after which charging will fall back to safe current, when load balancing could not be perofmed (or current limit was not determined externally)
     // If set to 0, no fallback will be performed
     uint16_t fallbackTimeout = 20000;
 
@@ -38,7 +38,7 @@ struct LoadBalancingSettings
     uint8_t fallbackCurrent = 0;
 
     // Timeout (milliseconds) after which meter values are considered outdated and cannot be used for load balancing
-    uint16_t meterTimeout = 10000;
+    uint16_t meterTimeout = 20000;
 };
 
 class LoadBalancing
@@ -49,6 +49,7 @@ private:
     MainsMeter *mainsMeter;
     unsigned long lastChecked;
     unsigned long currentLimitLastUpdated;
+    bool enabled();
     float calculateMaxImportCurrent();
     void balanceLoad();
     bool fallbackEnabled();

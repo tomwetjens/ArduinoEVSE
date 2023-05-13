@@ -67,7 +67,6 @@ void ChargeController::detectOverheat()
     }
 }
 
-
 void ChargeController::closeRelay()
 {
     digitalWrite(PIN_AC_RELAY, HIGH);
@@ -183,18 +182,28 @@ void ChargeController::setCurrentLimit(float amps)
         amps = this->settings.maxCurrent;
     }
 
-    this->currentLimit = amps;
+    if (currentLimit != amps)
+    {
+        this->currentLimit = amps;
 
-    Serial.print("Setting current limit to ");
-    Serial.print(amps);
-    Serial.println(" A");
+        Serial.print("Setting current limit to ");
+        Serial.print(amps);
+        Serial.println(" A");
 
-    this->applyCurrentLimit();
+        this->applyCurrentLimit();
+    }
 }
 
-void ChargeController::updateActualCurrent(float amps)
+void ChargeController::updateActualCurrent(ActualCurrent actualCurrent)
 {
-    this->_actualCurrent = amps;
+    Serial.print("Updating actual charging current: ");
+    Serial.print(actualCurrent.l1);
+    Serial.print(" ");
+    Serial.print(actualCurrent.l2);
+    Serial.print(" ");
+    Serial.println(actualCurrent.l3);
+
+    this->_actualCurrent = actualCurrent;
     this->_actualCurrentUpdated = millis();
 }
 

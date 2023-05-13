@@ -20,15 +20,26 @@
 
 void MainsMeter::setup()
 {
-    _importCurrent = {INT16_MAX, INT16_MAX, INT16_MAX}; // Some nonsense value to indicate it is unknown, 'safe' when it's used anyway
+    _importCurrent = {INT16_MAX, INT16_MAX, INT16_MAX}; // Some nonsense value to indicate it's unknown, but 'safe' when it's used anyway
     _exportCurrent = {0, 0, 0};
-
-    auto now = millis();
-    _updated = now - UINT64_MAX; // Pretend it was 'infinitely' long ago
+    _updated = millis() - UINT64_MAX;
 }
 
 void MainsMeter::updateValues(ThreePhases importCurrent, ThreePhases exportCurrent)
 {
+    Serial.print("Updating mains meter values: import: ");
+    Serial.print(importCurrent.l1);
+    Serial.print(" ");
+    Serial.print(importCurrent.l2);
+    Serial.print(" ");
+    Serial.print(importCurrent.l3);
+    Serial.print(" export: ");
+    Serial.print(exportCurrent.l1);
+    Serial.print(" ");
+    Serial.print(exportCurrent.l2);
+    Serial.print(" ");
+    Serial.println(exportCurrent.l3);
+
     _importCurrent = importCurrent;
     _exportCurrent = exportCurrent;
     _updated = millis();

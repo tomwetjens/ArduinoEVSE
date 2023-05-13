@@ -26,8 +26,8 @@
 
 enum Message
 {
-    StopChargingSession = 0,
-    StartChargingSession = 1,
+    StopCharging = 0,
+    StartCharging = 1,
     SetCurrentLimit = 2,
     ActualCurrent = 3,
     MainsMeterValues = 4,

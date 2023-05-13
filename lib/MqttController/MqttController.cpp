@@ -65,13 +65,12 @@ void MqttController::sendPeriodicUpdate()
 
 void MqttController::onMessage(int size)
 {
-    char msg[MAX_MSG_LEN];
-    memset(msg, '\0', MAX_MSG_LEN);
-
     if (size > MAX_MSG_LEN)
     {
         size = MAX_MSG_LEN;
     }
+
+    char msg[size];
 
     if (this->mqttClient->read(msg, size) > 0)
     {
@@ -81,43 +80,43 @@ void MqttController::onMessage(int size)
 
 void MqttController::processMessage(char *payload)
 {
-    Serial.print("Message: ");
-    Serial.println(payload);
-
     char *token = strtok(payload, ",");
 
     Message message = (Message)atoi(token);
 
-    switch (message)
+    if (message == StartCharging)
     {
-    case StartChargingSession:
-        Serial.println("StartChargingSession message received");
+        Serial.println("StartCharging message received");
         this->chargeController->startCharging();
         this->sendUpdate();
-        break;
-
-    case StopChargingSession:
-        Serial.println("StopChargingSession message received");
+    }
+    else if (message == StopCharging)
+    {
+        Serial.println("StopCharging message received");
         this->chargeController->stopCharging();
         this->sendUpdate();
-        break;
-
-    case SetCurrentLimit:
+    }
+    else if (message == SetCurrentLimit)
+    {
         Serial.println("SetCurrentLimit message received");
         token = strtok(NULL, ",");
         float currentLimit = atof(token);
         this->loadBalancing->setCurrentLimit(currentLimit);
         this->sendUpdate();
-        break;
-
-    case ActualCurrent:
+    }
+    else if (message == ActualCurrent)
+    {
         Serial.println("ActualCurrent message received");
         token = strtok(NULL, ",");
-        float actualCurrent = atof(token);
-        chargeController->updateActualCurrent(actualCurrent);
-        break;
-
-    case MainsMeterValues:
+        float actualCurrentL1 = atof(token);
+        token = strtok(NULL, ",");
+        float actualCurrentL2 = atof(token);
+        token = strtok(NULL, ",");
+        float actualCurrentL3 = atof(token);
+        chargeController->updateActualCurrent({actualCurrentL1, actualCurrentL2, actualCurrentL3});
+    }
+    else if (message == MainsMeterValues)
+    {
         Serial.println("MainsMeterValues message received");
         token = strtok(NULL, ",");
         float importCurrentL1 = atof(token);
@@ -132,10 +131,10 @@ void MqttController::processMessage(char *payload)
         token = strtok(NULL, ",");
         float exportCurrentL3 = atof(token);
         mainsMeter->updateValues({importCurrentL1, importCurrentL2, importCurrentL3}, {exportCurrentL1, exportCurrentL2, exportCurrentL3});
-        break;
-
-    default:
-        Serial.print("Unknown message:");
+    }
+    else
+    {
+        Serial.print("Unknown message: ");
         Serial.println(payload);
     }
 }
@@ -171,8 +170,6 @@ void MqttController::loop()
     int messageSize;
     while (messageSize = this->mqttClient->parseMessage())
     {
-        Serial.print("Received message of size: ");
-        Serial.println(messageSize);
         this->onMessage(messageSize);
     }
 

@@ -29,7 +29,7 @@ struct LoadBalancingSettings
     // If set to 0, no load balancing will be performed
     uint8_t maxMainsCurrent = 25;
 
-    // Timeout (milliseconds) after which charging will fall back to safe current, when load balancing could not be perofmed (or current limit was not determined externally)
+    // Timeout (milliseconds) after which charging will fall back to safe current, when load balancing could not be performed (or current limit was not determined externally)
     // If set to 0, no fallback will be performed
     uint16_t fallbackTimeout = 20000;
 

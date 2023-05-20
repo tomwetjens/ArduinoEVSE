@@ -35,7 +35,7 @@ void ChargeController::updateVehicleState()
         vehicleStateToText(vehicleState, vehicleStateText);
         Serial.println(vehicleStateText);
 
-        if (this->vehicleState != VehicleReady)
+        if (this->vehicleState != VehicleReady && this->vehicleState != VehicleReadyVentilationRequired)
         {
             if (this->state == Charging)
             {
@@ -94,6 +94,7 @@ void ChargeController::setup(ChargingSettings settings)
     this->currentLimit = this->settings.maxCurrent;
     this->vehicleState = VehicleNotConnected;
     this->state = Ready;
+    this->_actualCurrentUpdated = 0;
 }
 
 void ChargeController::loop()
@@ -110,7 +111,7 @@ void ChargeController::startCharging()
         return;
     }
 
-    if (this->vehicleState != VehicleReady)
+    if (this->vehicleState != VehicleReady && this->vehicleState != VehicleReadyVentilationRequired)
     {
         Serial.println("Vehicle not ready");
         return;
@@ -210,7 +211,7 @@ void ChargeController::updateActualCurrent(ActualCurrent actualCurrent)
 void ChargeController::applyCurrentLimit()
 {
     // Only advertise current limit when there is a vehicle connected
-    if (this->vehicleState == VehicleConnected || this->vehicleState == VehicleReady)
+    if (this->vehicleState == VehicleConnected || this->vehicleState == VehicleReady || this->vehicleState == VehicleReadyVentilationRequired)
     {
         if (currentLimit < MIN_CURRENT)
         {
@@ -230,7 +231,7 @@ void ChargeController::applyCurrentLimit()
             }
         }
     }
-    else if (vehicleState != VehicleConnected && vehicleState != VehicleReady)
+    else if (vehicleState != VehicleConnected && vehicleState != VehicleReady && vehicleState != VehicleReadyVentilationRequired)
     {
         // Switch pilot to standby as soon as vehicle is disconnected or no longer ready
         this->pilot->standby();

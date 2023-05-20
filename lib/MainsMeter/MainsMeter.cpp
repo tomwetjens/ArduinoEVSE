@@ -22,7 +22,7 @@ void MainsMeter::setup()
 {
     _importCurrent = {INT16_MAX, INT16_MAX, INT16_MAX}; // Some nonsense value to indicate it's unknown, but 'safe' when it's used anyway
     _exportCurrent = {0, 0, 0};
-    _updated = millis() - UINT64_MAX;
+    _updated = 0;
 }
 
 void MainsMeter::updateValues(ThreePhases importCurrent, ThreePhases exportCurrent)

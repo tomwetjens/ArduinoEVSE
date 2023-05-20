@@ -35,25 +35,37 @@ float LoadBalancing::calculateMaxImportCurrent()
     float houseLoad = mainsLoad - fmax(actualCurrent.l1, fmax(actualCurrent.l2, actualCurrent.l3)); // can be negative, meaning some power is also generated
 
     // Calculate max current charger may take, giving priority to the house load
-    return fmin(chargeController->maxCurrent(), fmax(0, settings.maxMainsCurrent - houseLoad));
+    return fmax(0, settings.maxMainsCurrent - houseLoad);
 }
 
 void LoadBalancing::balanceLoad()
 {
     unsigned long now = millis();
 
-    if (enabled())
+    if (enabled() && now - lastChecked >= 1000)
     {
-        // Only when mains meter values are recent
-        if (now - mainsMeter->updated() < settings.meterTimeout)
+        // Only when mains meter values are recent (and not initial)
+        if (now - mainsMeter->updated() < settings.meterTimeout && mainsMeter->updated() > 0)
         {
-            // And actual charging current value is recent
-            if (now - chargeController->actualCurrentUpdated() < settings.meterTimeout)
+            // And actual charging current value is recent (and not initial)
+            if (now - chargeController->actualCurrentUpdated() < settings.meterTimeout && chargeController->actualCurrentUpdated() > 0)
             {
                 float maxImportCurrent = calculateMaxImportCurrent();
 
                 setCurrentLimit(maxImportCurrent);
             }
+            else
+            {
+                Serial.print("WARN: Actual current updated ");
+                Serial.print(now - chargeController->actualCurrentUpdated());
+                Serial.println(" ms ago");
+            }
+        }
+        else
+        {
+            Serial.print("WARN: Mains meter values updated ");
+            Serial.print(now - mainsMeter->updated());
+            Serial.println(" ms ago");
         }
 
         lastChecked = now;
@@ -70,12 +82,15 @@ void LoadBalancing::fallbackCurrentIfOutdated()
     if (fallbackEnabled())
     {
         // When state is initial or current limit is outdated
-        if (millis() - currentLimitLastUpdated >= settings.fallbackTimeout)
+        auto now = millis();
+        if (now - currentLimitLastUpdated >= settings.fallbackTimeout)
         {
             if (chargeController->getCurrentLimit() > settings.fallbackCurrent)
             {
                 // Fall back to a safe charging current (for safety reasons)
-                Serial.println("Current limit is outdated. Falling back to safe charging current");
+                Serial.println("WARN: Current limit updated ");
+                Serial.print(now - currentLimitLastUpdated);
+                Serial.println(" ms ago. Falling back to safe charging current");
                 fallbackCurrent();
             }
         }

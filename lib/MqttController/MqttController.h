@@ -20,6 +20,7 @@
 
 #include <ArduinoMqttClient.h>
 
+#include <NetworkManager.h>
 #include <ChargeController.h>
 #include <LoadBalancing.h>
 #include <MainsMeter.h>
@@ -46,6 +47,7 @@ struct MqttSettings
 class MqttController
 {
 private:
+    NetworkManager *networkManager;
     Pilot *pilot;
     ChargeController *chargeController;
     LoadBalancing *loadBalancing;
@@ -61,7 +63,7 @@ private:
     void processMessage(char *msg);
 
 public:
-    MqttController(Client &client, Pilot &pilot, ChargeController &chargeController, LoadBalancing &loadBalancing, MainsMeter &mainsMeter);
+    MqttController(NetworkManager &networkManager, Pilot &pilot, ChargeController &chargeController, LoadBalancing &loadBalancing, MainsMeter &mainsMeter);
 
     void setup(MqttSettings settings);
     void loop();

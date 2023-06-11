@@ -35,6 +35,11 @@ void NetworkManager::connect()
     lastCheckMillis = millis();
 }
 
+NetworkManager::NetworkManager()
+{
+    client = WiFiClient();
+}
+
 void NetworkManager::setup(WiFiSettings settings)
 {
     this->settings = settings;
@@ -144,6 +149,11 @@ void NetworkManager::loop()
 bool NetworkManager::isConnected()
 {
     return WiFi.status() == WL_CONNECTED;
+}
+
+WiFiClient& NetworkManager::getClient()
+{
+    return client;
 }
 
 void NetworkManager::onConnected(EventHandler handler)

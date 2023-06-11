@@ -15,39 +15,28 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NETWORKMANAGER_H_
-#define NETWORKMANAGER_H_ _
+#ifndef RGB_LED_H
+#define RGB_LED_H _
 
-#include <WiFiClient.h>
+#include <Arduino.h>
 
-using EventHandler = void (*)();
-
-struct WiFiSettings
-{
-    char ssid[33];
-    char password[64];
+enum Color {
+    OFF,
+    RED,
+    GREEN, 
+    BLUE
 };
 
-class NetworkManager
+class RgbLed
 {
 private:
-    WiFiSettings settings;
-    EventHandler connected;
-    EventHandler disconnected;
-    void connect();
-    WiFiClient client;
+  uint8_t redPinNumber;
+  uint8_t greenPinNumber;
+  uint8_t bluePinNumber;
 
 public:
-    NetworkManager();
-    void setup(WiFiSettings settings);
-    void loop();
-
-    bool isConnected();
-    WiFiClient& getClient();
-
-    // Event handlers
-    void onConnected(EventHandler handler);
-    void onDisconnected(EventHandler handler);
+  RgbLed(uint8_t redPinNumber, uint8_t greenPinNumber, uint8_t bluePinNumber);
+  void setColor(Color color);
 };
 
-#endif // NETWORKMANAGER_H_
+#endif // RGB_LED_H

@@ -24,42 +24,42 @@
 
 void MqttController::connect()
 {
-    this->lastConnect = millis();
+    lastConnect = millis();
 
     Serial.print("Attempting to connect to the MQTT broker: ");
-    Serial.print(this->settings.host);
+    Serial.print(settings.host);
     Serial.print(":");
-    Serial.println(this->settings.port);
+    Serial.println(settings.port);
 
-    this->mqttClient->stop(); // ensure socket is closed in case of reconnect
-    if (!this->mqttClient->connect(this->settings.host, this->settings.port))
+    mqttClient->stop(); // ensure socket is closed in case of reconnect
+    if (!mqttClient->connect(settings.host, settings.port))
     {
         Serial.print("MQTT connection failed! Error code: ");
-        Serial.println(this->mqttClient->connectError());
+        Serial.println(mqttClient->connectError());
     }
 
     Serial.println("Connected to the MQTT broker");
 
     Serial.print("Subscribing to topic: ");
-    Serial.println(this->settings.inTopic);
-    this->mqttClient->subscribe(this->settings.inTopic);
+    Serial.println(settings.inTopic);
+    mqttClient->subscribe(settings.inTopic);
 
-    this->sendUpdate();
+    sendUpdate();
 }
 
 void MqttController::reconnectAutomatically()
 {
-    if (millis() - lastConnect >= this->settings.reconnectInterval)
+    if (millis() - lastConnect >= settings.reconnectInterval)
     {
-        this->connect();
+        connect();
     }
 }
 
 void MqttController::sendPeriodicUpdate()
 {
-    if (millis() - lastUpdateSent >= this->settings.updateInterval)
+    if (millis() - lastUpdateSent >= settings.updateInterval)
     {
-        this->sendUpdate();
+        sendUpdate();
     }
 }
 
@@ -87,22 +87,22 @@ void MqttController::processMessage(char *payload)
     if (message == StartCharging)
     {
         Serial.println("StartCharging message received");
-        this->chargeController->startCharging();
-        this->sendUpdate();
+        chargeController->startCharging();
+        sendUpdate();
     }
     else if (message == StopCharging)
     {
         Serial.println("StopCharging message received");
-        this->chargeController->stopCharging();
-        this->sendUpdate();
+        chargeController->stopCharging();
+        sendUpdate();
     }
     else if (message == SetCurrentLimit)
     {
         Serial.println("SetCurrentLimit message received");
         token = strtok(NULL, ",");
         float currentLimit = atof(token);
-        this->loadBalancing->setCurrentLimit(currentLimit);
-        this->sendUpdate();
+        loadBalancing->setCurrentLimit(currentLimit);
+        sendUpdate();
     }
     else if (message == ActualCurrent)
     {
@@ -139,17 +139,18 @@ void MqttController::processMessage(char *payload)
     }
 }
 
-MqttController::MqttController(Client &client,
+MqttController::MqttController(NetworkManager &networkManager,
                                Pilot &pilot,
                                ChargeController &chargeController,
                                LoadBalancing &loadBalancing,
                                MainsMeter &mainsMeter)
 {
+    this->networkManager = &networkManager;
     this->pilot = &pilot;
     this->chargeController = &chargeController;
     this->loadBalancing = &loadBalancing;
     this->mainsMeter = &mainsMeter;
-    this->mqttClient = new MqttClient(client);
+    this->mqttClient = new MqttClient(networkManager.getClient());
     this->lastConnect = 0;
     this->lastUpdateSent = 0;
 }
@@ -161,19 +162,19 @@ void MqttController::setup(MqttSettings settings)
 
 void MqttController::loop()
 {
-    if (!this->mqttClient->connected())
+    if (!mqttClient->connected() || !networkManager->isConnected())
     {
-        this->reconnectAutomatically();
+        reconnectAutomatically();
         return;
     }
 
     int messageSize;
-    while (messageSize = this->mqttClient->parseMessage())
+    while (messageSize = mqttClient->parseMessage())
     {
-        this->onMessage(messageSize);
+        onMessage(messageSize);
     }
 
-    this->sendPeriodicUpdate();
+    sendPeriodicUpdate();
 }
 
 void MqttController::sendUpdate()
@@ -220,5 +221,5 @@ void MqttController::sendUpdate()
 
 bool MqttController::isConnected()
 {
-    return this->mqttClient->connected();
+    return mqttClient->connected();
 }

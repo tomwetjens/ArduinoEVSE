@@ -16,29 +16,30 @@
  */
 
 #include <Arduino.h>
-#include <WiFiClient.h>
 
-#include "Display.h"
-#include "ChargeController.h"
-#include "NetworkManager.h"
-#include "MqttController.h"
+#include <RgbLed.h>
+#include <Display.h>
+#include <ChargeController.h>
+#include <NetworkManager.h>
+#include <MqttController.h>
 #include <TempSensor.h>
 #include <LoadBalancing.h>
 #include <MainsMeter.h>
 
 #include "arduino_secrets.h"
 
-#define LED_GREEN 13
-#define LED_RED 5
+#define PIN_D5 5
+#define PIN_D8 8
+#define PIN_D13 13
 
+RgbLed rgbLed(PIN_D5, PIN_D13, PIN_D8);
 Pilot pilot;
 TempSensor tempSensor(PIN_A2);
 ChargeController chargeController(pilot, tempSensor);
 MainsMeter mainsMeter;
 LoadBalancing loadBalancing(chargeController, mainsMeter);
 NetworkManager networkManager;
-WiFiClient wiFiClient;
-MqttController mqttController(wiFiClient, pilot, chargeController, loadBalancing, mainsMeter);
+MqttController mqttController(networkManager, pilot, chargeController, loadBalancing, mainsMeter);
 Display display(chargeController, networkManager, mqttController);
 
 void vehicleStateChanged()
@@ -55,30 +56,21 @@ void updateLED()
   case Ready:
     if (mqttController.isConnected() && networkManager.isConnected())
     {
-      digitalWrite(LED_RED, LOW);
-      digitalWrite(LED_GREEN, HIGH);
+      rgbLed.setColor(GREEN);
     }
     else
     {
-      digitalWrite(LED_RED, HIGH);
-      digitalWrite(LED_GREEN, LOW);
+      rgbLed.setColor(RED);
     }
     break;
   case Charging:
-    digitalWrite(LED_RED, LOW);
-    digitalWrite(LED_GREEN, LOW);
-    // Blue is soldered to charger relay
+    rgbLed.setColor(BLUE);
+    // Blue is also soldered to charger relay
     break;
   case Error:
-    digitalWrite(LED_RED, HIGH);
-    digitalWrite(LED_GREEN, LOW);
+    rgbLed.setColor(RED);
     break;
   }
-}
-
-void stateChanged()
-{
-  updateLED();
 }
 
 void setup()
@@ -100,7 +92,6 @@ void setup()
   strncpy(mqttSettings.host, MQTT_HOST, 254);
   mqttController.setup(mqttSettings);
 
-  chargeController.onStateChange(stateChanged);
   chargeController.onVehicleStateChange(vehicleStateChanged);
 
   updateLED();

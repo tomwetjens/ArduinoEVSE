@@ -35,7 +35,7 @@ void ChargeController::updateVehicleState()
         vehicleStateToText(vehicleState, vehicleStateText);
         Serial.println(vehicleStateText);
 
-        if (this->vehicleState != VehicleReady && this->vehicleState != VehicleReadyVentilationRequired)
+        if (vehicleState != VehicleConnected &&  vehicleState != VehicleReady && vehicleState != VehicleReadyVentilationRequired)
         {
             if (this->state == Charging)
             {
@@ -111,9 +111,9 @@ void ChargeController::startCharging()
         return;
     }
 
-    if (this->vehicleState != VehicleReady && this->vehicleState != VehicleReadyVentilationRequired)
+    if (vehicleState != VehicleConnected && vehicleState != VehicleReady && vehicleState != VehicleReadyVentilationRequired)
     {
-        Serial.println("Vehicle not ready");
+        Serial.println("Vehicle not connected");
         return;
     }
 
@@ -224,7 +224,7 @@ void ChargeController::applyCurrentLimit()
             // Switch pilot from standby to advertising the current limit as soon as vehicle is connected/ready
             this->pilot->currentLimit(currentLimit);
 
-            if (this->state == Charging)
+            if (this->state == Charging && (vehicleState == VehicleReady || vehicleState == VehicleReadyVentilationRequired))
             {
                 // Close relay again if it was temporarily open
                 this->closeRelay();

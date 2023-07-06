@@ -38,6 +38,8 @@ struct MqttSettings
 {
     char host[254];
     uint16_t port = 1883;
+    char username[100];
+    char password[100];
     char inTopic[100] = "ArduinoEVSE/in";
     char outTopic[100] = "ArduinoEVSE/out";
     uint16_t reconnectInterval = 5000;

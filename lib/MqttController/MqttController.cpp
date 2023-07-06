@@ -32,6 +32,14 @@ void MqttController::connect()
     Serial.println(settings.port);
 
     mqttClient->stop(); // ensure socket is closed in case of reconnect
+    
+    if (settings.username != NULL)
+    {
+        mqttClient->setUsernamePassword(settings.username, settings.password);
+    }
+
+    mqttClient->setId("ArduinoEVSE");
+    
     if (!mqttClient->connect(settings.host, settings.port))
     {
         Serial.print("MQTT connection failed! Error code: ");

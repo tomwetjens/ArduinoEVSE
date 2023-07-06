@@ -90,6 +90,12 @@ void setup()
 
   struct MqttSettings mqttSettings;
   strncpy(mqttSettings.host, MQTT_HOST, 254);
+  #ifdef MQTT_USERNAME
+  strncpy(mqttSettings.username, MQTT_USERNAME, 100);
+  #endif
+  #ifdef MQTT_PASSWORD
+  strncpy(mqttSettings.password, MQTT_PASSWORD, 100);
+  #endif
   mqttController.setup(mqttSettings);
 
   chargeController.onVehicleStateChange(vehicleStateChanged);

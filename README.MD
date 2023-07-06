@@ -73,6 +73,8 @@ Create a file `src/arduino_secrets.h`:
 #define WIFI_WPA_PASS "mypass"
 
 #define MQTT_HOST "192.168.1.44"
+#define MQTT_USERNAME "arduino"
+#define MQTT_PASSWORD "arduino"
 ```
 This is needed to set the WiFi and MQTT settings until it is possible to configure them through some other means.
 

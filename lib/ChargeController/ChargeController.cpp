@@ -231,12 +231,17 @@ void ChargeController::applyCurrentLimit()
             }
         }
     }
-    else if (vehicleState != VehicleConnected && vehicleState != VehicleReady && vehicleState != VehicleReadyVentilationRequired)
+    else if (vehicleState != VehicleReady && vehicleState != VehicleReadyVentilationRequired)
     {
-        // Switch pilot to standby as soon as vehicle is disconnected or no longer ready
-        this->pilot->standby();
-        // Ensure relay is open
+        // Vehicle is not ready or disconnected
+
+        // Ensure relay is open as soon as vehicle is no longer ready
         this->openRelay();
+
+        if (vehicleState != VehicleConnected) {
+            // Switch pilot to standby as soon as vehicle is no longer connected
+            this->pilot->standby();
+        }
     }
 }
 

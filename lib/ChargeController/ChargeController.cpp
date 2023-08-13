@@ -76,7 +76,7 @@ ChargeController::ChargeController(IPilot &pilot, ITempSensor &tempSensor)
 
 void ChargeController::setup(ChargingSettings settings)
 {
-    relay->setup(settings.relayDebounceDelay, 0);
+    relay->setup(3000, 0);
 
     this->pilot->standby();
 

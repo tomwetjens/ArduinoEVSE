@@ -39,8 +39,6 @@ struct ChargingSettings
 
   // Temperature (C) at which charger is considered overheated - will immediately stop charging and must be reset to charge again
   uint8_t overheatTemp = 70;
-
-  uint16_t relayDebounceDelay = 2000;
 };
 
 struct ActualCurrent

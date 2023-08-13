@@ -64,8 +64,9 @@ void updateLED()
     }
     break;
   case Charging:
-    rgbLed.setColor(BLUE);
-    // Blue is also soldered to charger relay
+    rgbLed.setRed(LOW);
+    rgbLed.setGreen(LOW);
+    // Blue is soldered to charger relay and is controlled by charge controller
     break;
   case Error:
     rgbLed.setColor(RED);

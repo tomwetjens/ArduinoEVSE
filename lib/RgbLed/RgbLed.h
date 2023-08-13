@@ -37,6 +37,9 @@ private:
 public:
   RgbLed(uint8_t redPinNumber, uint8_t greenPinNumber, uint8_t bluePinNumber);
   void setColor(Color color);
+  void setRed(int status);
+  void setGreen(int status);
+  void setBlue(int status);
 };
 
 #endif // RGB_LED_H

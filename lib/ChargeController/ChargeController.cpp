@@ -35,7 +35,7 @@ void ChargeController::updateVehicleState()
         vehicleStateToText(vehicleState, vehicleStateText);
         Serial.println(vehicleStateText);
 
-        if (vehicleState != VehicleConnected &&  vehicleState != VehicleReady && vehicleState != VehicleReadyVentilationRequired)
+        if (vehicleState != VehicleConnected && vehicleState != VehicleReady && vehicleState != VehicleReadyVentilationRequired)
         {
             if (this->state == Charging)
             {
@@ -67,26 +67,16 @@ void ChargeController::detectOverheat()
     }
 }
 
-void ChargeController::closeRelay()
-{
-    digitalWrite(PIN_AC_RELAY, HIGH);
-}
-
-void ChargeController::openRelay()
-{
-    digitalWrite(PIN_AC_RELAY, LOW);
-}
-
 ChargeController::ChargeController(IPilot &pilot, ITempSensor &tempSensor)
 {
     this->pilot = &pilot;
     this->tempSensor = &tempSensor;
+    this->relay = new Relay(PIN_AC_RELAY);
 }
 
 void ChargeController::setup(ChargingSettings settings)
 {
-    pinMode(PIN_AC_RELAY, OUTPUT);
-    this->openRelay();
+    relay->setup(settings.relayDebounceDelay, 0);
 
     this->pilot->standby();
 
@@ -99,6 +89,7 @@ void ChargeController::setup(ChargingSettings settings)
 
 void ChargeController::loop()
 {
+    relay->loop();
     this->detectOverheat();
     this->updateVehicleState();
 }
@@ -118,7 +109,7 @@ void ChargeController::startCharging()
     }
 
     Serial.println("Start charging");
-    this->closeRelay();
+    relay->close();
 
     this->state = Charging;
 
@@ -132,8 +123,7 @@ void ChargeController::startCharging()
 
 void ChargeController::stopCharging()
 {
-    // Ensure relay is open regardless of administrative state
-    this->openRelay();
+    relay->openImmediately(); // immediately, for safety
 
     if (this->state != Charging)
     {
@@ -210,38 +200,32 @@ void ChargeController::updateActualCurrent(ActualCurrent actualCurrent)
 
 void ChargeController::applyCurrentLimit()
 {
-    // Only advertise current limit when there is a vehicle connected
     if (this->vehicleState == VehicleConnected || this->vehicleState == VehicleReady || this->vehicleState == VehicleReadyVentilationRequired)
     {
-        if (currentLimit < MIN_CURRENT)
+        // Only advertise current limit when there is a vehicle connected
+
+        if (currentLimit >= MIN_CURRENT)
         {
-            // We need to advertise at least 6A to the EV, so for anything less just we go to standby
-            this->openRelay();
-            this->pilot->standby();
-        }
-        else
-        {
-            // Switch pilot from standby to advertising the current limit as soon as vehicle is connected/ready
-            this->pilot->currentLimit(currentLimit);
+            pilot->currentLimit(currentLimit);
 
             if (this->state == Charging && (vehicleState == VehicleReady || vehicleState == VehicleReadyVentilationRequired))
             {
                 // Close relay again if it was temporarily open
-                this->closeRelay();
+                relay->close();
             }
         }
-    }
-    else if (vehicleState != VehicleReady && vehicleState != VehicleReadyVentilationRequired)
-    {
-        // Vehicle is not ready or disconnected
-
-        // Ensure relay is open as soon as vehicle is no longer ready
-        this->openRelay();
-
-        if (vehicleState != VehicleConnected) {
-            // Switch pilot to standby as soon as vehicle is no longer connected
-            this->pilot->standby();
+        else
+        {
+            // We need to advertise at least 6A to the EV, so for anything less just we go to standby
+            relay->open();
+            pilot->standby();
         }
+    }
+    else
+    {
+        // Switch pilot to standby as soon as vehicle is no longer connected
+        relay->open();
+        pilot->standby();
     }
 }
 

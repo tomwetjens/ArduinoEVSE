@@ -18,8 +18,9 @@
 #ifndef CHARGECONTROLLER_H_
 #define CHARGECONTROLLER_H_ _
 
-#include "Pilot.h"
+#include <Pilot.h>
 #include <TempSensor.h>
+#include <Relay.h>
 
 enum State
 {
@@ -38,6 +39,8 @@ struct ChargingSettings
 
   // Temperature (C) at which charger is considered overheated - will immediately stop charging and must be reset to charge again
   uint8_t overheatTemp = 70;
+
+  uint16_t relayDebounceDelay = 2000;
 };
 
 struct ActualCurrent
@@ -54,6 +57,7 @@ private:
   State state;
   IPilot *pilot;
   ITempSensor *tempSensor;
+  Relay *relay;
   VehicleState vehicleState;
   float currentLimit;
   ActualCurrent _actualCurrent;

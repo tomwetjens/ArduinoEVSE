@@ -109,11 +109,12 @@ void ChargeController::startCharging()
     }
 
     Serial.println("Start charging");
-    relay->close();
 
     this->state = Charging;
 
     this->started = millis();
+
+    this->applyCurrentLimit();
 
     if (this->stateChange)
     {
@@ -212,6 +213,11 @@ void ChargeController::applyCurrentLimit()
             {
                 // Close relay again if it was temporarily open
                 relay->close();
+            }
+            else
+            {
+                // Make sure it is open if not charging or not ready
+                relay->open();
             }
         }
         else

@@ -35,7 +35,7 @@ void ChargeController::updateVehicleState()
         vehicleStateToText(vehicleState, vehicleStateText);
         Serial.println(vehicleStateText);
 
-        if (vehicleState != VehicleConnected && vehicleState != VehicleReady && vehicleState != VehicleReadyVentilationRequired)
+        if (vehicleState == VehicleConnected || vehicleState != VehicleReady && vehicleState != VehicleReadyVentilationRequired)
         {
             if (this->state == Charging)
             {

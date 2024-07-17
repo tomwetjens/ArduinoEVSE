@@ -23,8 +23,6 @@
 #define PILOT_FREQUENCY 1000 // 1 kHz
 #define PIN_PILOT_PWM 10
 
-#define PIN_PILOT_IN_MIN_VOLTAGE 2.55 // @ 0V pilot, measured
-#define PIN_PILOT_IN_MAX_VOLTAGE 4.47 // @ 12V pilot, measured
 #define PIN_PILOT_IN PIN_A1
 
 #ifdef ARDUINO_AVR_UNO_WIFI_REV2
@@ -84,9 +82,9 @@ float Pilot::getVoltage()
 
 float Pilot::readPin()
 {
-    int pinValue = analogReadMax(PIN_PILOT_IN, 10);                                                                           // 0-1024
+    int pinValue = analogReadMax(PIN_PILOT_IN, 100);                                                                           // 0-1024
     float pinVoltage = (pinValue / 1023.0) * 5.0;                                                                             // 0-5V
-    this->voltage = ((pinVoltage - PIN_PILOT_IN_MIN_VOLTAGE) / (PIN_PILOT_IN_MAX_VOLTAGE - PIN_PILOT_IN_MIN_VOLTAGE)) * 12.0; // 0-12V
+    this->voltage = pinVoltage * 5.44 - 12.6; // magic values based on the hardware
     return this->voltage;
 }
 
@@ -110,7 +108,7 @@ VehicleState Pilot::read()
     {
         return VehicleReadyVentilationRequired;
     }
-    else if (voltage > 0) // 0V
+    else if (voltage >= 0) // 0V
     {
         return VehicleNoPower;
     }

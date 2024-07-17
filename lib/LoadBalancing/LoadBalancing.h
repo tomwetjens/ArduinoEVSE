@@ -25,6 +25,8 @@
 
 struct LoadBalancingSettings
 {
+    bool enabled = false;
+
     // Max mains current
     // If set to 0, no load balancing will be performed
     uint8_t maxMainsCurrent = 25;
@@ -49,7 +51,6 @@ private:
     MainsMeter *mainsMeter;
     unsigned long lastChecked;
     unsigned long currentLimitLastUpdated;
-    bool enabled();
     float calculateMaxImportCurrent();
     void balanceLoad();
     bool fallbackEnabled();

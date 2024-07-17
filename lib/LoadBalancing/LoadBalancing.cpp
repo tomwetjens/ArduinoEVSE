@@ -19,11 +19,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-bool LoadBalancing::enabled()
-{
-    return settings.maxMainsCurrent > 0;
-}
-
 float LoadBalancing::calculateMaxImportCurrent()
 {
     // Determine the current load on the mains (highest of the 3 phases)
@@ -42,7 +37,7 @@ void LoadBalancing::balanceLoad()
 {
     unsigned long now = millis();
 
-    if (enabled() && now - lastChecked >= 1000)
+    if (settings.enabled && now - lastChecked >= 1000)
     {
         // Only when mains meter values are recent (and not initial)
         if (now - mainsMeter->updated() < settings.meterTimeout && mainsMeter->updated() > 0)
